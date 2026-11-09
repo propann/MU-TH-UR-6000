@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Veille Azoth</title>
+  <meta name="description" content="Veille technologique personnelle d'Azoth : TSSR (alertes, cyber, systèmes, réseau, homelab) et perso (firmwares, maker, musique, photo, rétro, drones, IA, crypto)">
+  <link rel="icon" href="azoth.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="rain" aria-hidden="true"></canvas>
+  <div class="scan" aria-hidden="true"></div>
+
+  <div id="boot" aria-hidden="true"><pre id="bootText"></pre></div>
+
+  <header class="top">
+    <button id="hal" class="hal" title="Rafraîchir les flux (R)" aria-label="Rafraîchir les flux"><span></span></button>
+    <div class="ident">
+      <h1>MU-TH-UR 6000 <em>//</em> VEILLE AZOTH</h1>
+      <p id="tagline">INTERFACE 2037 · EN ATTENTE DE DONNÉES…</p>
+    </div>
+    <div class="clock" id="clock">--:--:--</div>
+    <nav class="tools">
+      <button id="btnSynth" title="Télécharger une synthèse Markdown de tes favoris">⇩ Synthèse</button>
+      <a class="btn" href="/api/opml" title="Exporter tes sources pour Feedly, Inoreader, FreshRSS…">⇩ OPML</a>
+      <button id="btnRain" title="Pluie Matrix on/off">⁂ Matrix</button>
+      <button id="btnOff" title="Arrêter la veille (serveur local)" aria-label="Arrêter la veille">⏻</button>
+    </nav>
+  </header>
+
+  <section class="ticker" id="ticker" aria-label="Cours des cryptomonnaies"></section>
+
+  <div class="layout">
+    <main>
+      <nav class="tabs" id="tabs" aria-label="Catégories"></nav>
+      <div class="filters">
+        <label class="search">&gt;<input id="q" placeholder="rechercher… (touche /)" autocomplete="off"></label>
+        <select id="period" aria-label="Période">
+          <option value="1">24 h</option>
+          <option value="3">72 h</option>
+          <option value="7" selected>7 jours</option>
+          <option value="30">30 jours</option>
+          <option value="0">Tout</option>
+        </select>
+        <label class="chk"><input type="checkbox" id="unread"> non lus</label>
+        <label class="chk"><input type="checkbox" id="onlyNew"> nouveaux</label>
+        <button id="markAll" title="Marquer toute la vue comme lue">✓ tout lu</button>
+      </div>
+      <p class="count" id="count"></p>
+      <section id="feed" class="feed" aria-live="polite"></section>
+      <button id="more" class="more" hidden>Afficher plus</button>
+    </main>
+
+    <aside>
+      <section class="panel red">
+        <h2><i class="dot"></i>ALERTES PRIORITAIRES <small>7 j</small></h2>
+        <div id="alerts"></div>
+      </section>
+
+      <section class="panel">
+        <h2>DERNIÈRES VERSIONS <small>firmwares &amp; logiciels</small></h2>
+        <div id="versions" class="versions"></div>
+      </section>
+
+      <section class="panel you">
+        <h2>◆ MES SUJETS</h2>
+        <p class="hint">Ton matériel et tes passions : les articles qui en parlent reçoivent le badge « POUR TOI » et vont dans l'onglet du même nom.</p>
+        <div id="topics" class="chips"></div>
+        <form id="topicForm" class="inline"><input id="topicIn" placeholder="ex. Daisy Seed" maxlength="40" aria-label="Ajouter un sujet"><button>+</button></form>
+      </section>
+
+      <section class="panel">
+        <h2>MOTS SURVEILLÉS <small>alerte</small></h2>
+        <p class="hint">Sécurité : tout article qui cite un de ces mots remonte en alerte rouge. Mets-y le matériel et les logiciels de ton stage ou de ton entreprise.</p>
+        <div id="watch" class="chips"></div>
+        <form id="watchForm" class="inline"><input id="watchIn" placeholder="ex. FortiGate" maxlength="40"><button>+</button></form>
+      </section>
+
+      <section class="panel">
+        <h2>SOURCES <small id="srcStat"></small></h2>
+        <div id="sources" class="sources"></div>
+        <details>
+          <summary>+ Ajouter un flux RSS</summary>
+          <form id="addForm" class="add">
+            <input id="addName" placeholder="Nom" required maxlength="60">
+            <input id="addUrl" type="url" placeholder="https://site/feed.xml" required>
+            <select id="addCat"></select>
+            <button>Ajouter et tester</button>
+            <p id="addMsg" class="hint"></p>
+          </form>
+        </details>
+      </section>
+    </aside>
+  </div>
+
+  <footer>Raccourcis : <kbd>/</kbd> recherche · <kbd>R</kbd> rafraîchir · <kbd>J</kbd>/<kbd>K</kbd> naviguer · <kbd>O</kbd> ouvrir · <kbd>F</kbd> favori · <kbd>L</kbd> lu/non lu</footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+# Fins de ligne : Git stocke tout en LF et adapte à la sortie.
+* text=auto
+
+# Scripts Windows : CRLF obligatoire (cmd.exe gère mal les étiquettes/goto en LF)
+*.bat     text eol=crlf
+
+# Scripts et services Linux (Raspberry Pi) : LF obligatoire (bash refuse le CRLF)
+*.sh      text eol=lf
+*.service text eol=lf
+
+# Binaires : jamais modifiés par Git
+*.ico  binary
+*.png  binary
+*.pdf  binary
+*.docx binary

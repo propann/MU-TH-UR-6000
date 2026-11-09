@@ -1,0 +1,721 @@
+[
+ {
+  "id": "428091c33e",
+  "name": "CERT-FR Alertes",
+  "url": "https://www.cert.ssi.gouv.fr/alerte/feed/",
+  "cat": "Alertes",
+  "on": true
+ },
+ {
+  "id": "a042b417fb",
+  "name": "CERT-FR Avis",
+  "url": "https://www.cert.ssi.gouv.fr/avis/feed/",
+  "cat": "Alertes",
+  "on": true
+ },
+ {
+  "id": "d5bb18ccf1",
+  "name": "Ubuntu Security Notices",
+  "url": "https://ubuntu.com/security/notices/rss.xml",
+  "cat": "Alertes",
+  "on": true
+ },
+ {
+  "id": "d044f69da8",
+  "name": "Debian Security (DSA)",
+  "url": "https://www.debian.org/security/dsa-long",
+  "cat": "Alertes",
+  "on": true
+ },
+ {
+  "id": "dfe395f609",
+  "name": "Fortinet PSIRT",
+  "url": "https://filestore.fortinet.com/fortiguard/rss/ir.xml",
+  "cat": "Alertes",
+  "on": true
+ },
+ {
+  "id": "8bab679f3d",
+  "name": "CERT-FR Actualités",
+  "url": "https://www.cert.ssi.gouv.fr/actualite/feed/",
+  "cat": "Cyber & piratage",
+  "on": true
+ },
+ {
+  "id": "6f80d61512",
+  "name": "SANS Internet Storm Center",
+  "url": "https://isc.sans.edu/rssfeed_full.xml",
+  "cat": "Cyber & piratage",
+  "on": true
+ },
+ {
+  "id": "6715ae6595",
+  "name": "BleepingComputer",
+  "url": "https://www.bleepingcomputer.com/feed/",
+  "cat": "Cyber & piratage",
+  "on": true
+ },
+ {
+  "id": "5fa1717122",
+  "name": "The Hacker News",
+  "url": "https://feeds.feedburner.com/TheHackersNews",
+  "cat": "Cyber & piratage",
+  "on": true
+ },
+ {
+  "id": "d6f4a2c9ee",
+  "name": "Zataz",
+  "url": "https://www.zataz.com/feed/",
+  "cat": "Cyber & piratage",
+  "on": true
+ },
+ {
+  "id": "2db766bd8f",
+  "name": "Krebs on Security",
+  "url": "https://krebsonsecurity.com/feed/",
+  "cat": "Cyber & piratage",
+  "on": true
+ },
+ {
+  "id": "972f48079e",
+  "name": "Numerama Cyberguerre",
+  "url": "https://www.numerama.com/cyberguerre/feed/",
+  "cat": "Cyber & piratage",
+  "on": true
+ },
+ {
+  "id": "6841f30d0d",
+  "name": "Cisco Talos",
+  "url": "https://blog.talosintelligence.com/rss/",
+  "cat": "Cyber & piratage",
+  "on": true
+ },
+ {
+  "id": "90d251d33e",
+  "name": "IT-Connect",
+  "url": "https://www.it-connect.fr/feed/",
+  "cat": "Systèmes",
+  "on": true
+ },
+ {
+  "id": "f9358b3d1b",
+  "name": "LeMagIT",
+  "url": "https://www.lemagit.fr/rss/ContentSyndication.xml",
+  "cat": "Systèmes",
+  "on": true
+ },
+ {
+  "id": "2d25da8b53",
+  "name": "Windows Blog",
+  "url": "https://blogs.windows.com/feed/",
+  "cat": "Systèmes",
+  "on": true
+ },
+ {
+  "id": "0104b1d9b1",
+  "name": "LWN.net",
+  "url": "https://lwn.net/headlines/rss",
+  "cat": "Systèmes",
+  "on": true
+ },
+ {
+  "id": "502840dade",
+  "name": "LinuxFr",
+  "url": "https://linuxfr.org/news.atom",
+  "cat": "Systèmes",
+  "on": true
+ },
+ {
+  "id": "098bcef4ea",
+  "name": "Korben",
+  "url": "https://korben.info/feed",
+  "cat": "Systèmes",
+  "on": true
+ },
+ {
+  "id": "726350f6b7",
+  "name": "Arch Linux News (interventions manuelles)",
+  "url": "https://archlinux.org/feeds/news/",
+  "cat": "Systèmes",
+  "on": true
+ },
+ {
+  "id": "6b06b2f070",
+  "name": "Omarchy (versions)",
+  "url": "https://github.com/omacom/omarchy/releases.atom",
+  "cat": "Systèmes",
+  "on": true
+ },
+ {
+  "id": "0e1c800cb8",
+  "name": "Hyprland (versions)",
+  "url": "https://github.com/hyprwm/Hyprland/releases.atom",
+  "cat": "Systèmes",
+  "on": true
+ },
+ {
+  "id": "7421bd34cb",
+  "name": "Pop!_OS COSMIC (versions)",
+  "url": "https://github.com/pop-os/cosmic-epoch/releases.atom",
+  "cat": "Systèmes",
+  "on": true
+ },
+ {
+  "id": "af9f2b66ac",
+  "name": "r/pop_os",
+  "url": "https://www.reddit.com/r/pop_os/.rss",
+  "cat": "Systèmes",
+  "on": true,
+  "ttl": 3600
+ },
+ {
+  "id": "37ae95c00b",
+  "name": "Blog de Stéphane Bortzmeyer",
+  "url": "https://www.bortzmeyer.org/feed-full.atom",
+  "cat": "Réseau",
+  "on": true
+ },
+ {
+  "id": "56264929e8",
+  "name": "Cloudflare Blog",
+  "url": "https://blog.cloudflare.com/rss/",
+  "cat": "Réseau",
+  "on": true
+ },
+ {
+  "id": "80da0e1562",
+  "name": "APNIC Blog",
+  "url": "https://blog.apnic.net/feed/",
+  "cat": "Réseau",
+  "on": true
+ },
+ {
+  "id": "4f2fff53d6",
+  "name": "RIPE Labs",
+  "url": "https://labs.ripe.net/feed.xml",
+  "cat": "Réseau",
+  "on": true
+ },
+ {
+  "id": "a9c80b25d9",
+  "name": "Netgate (pfSense)",
+  "url": "https://www.netgate.com/blog/rss.xml",
+  "cat": "Réseau",
+  "on": true
+ },
+ {
+  "id": "f8a9c3c7a8",
+  "name": "selfh.st",
+  "url": "https://selfh.st/rss/",
+  "cat": "Homelab",
+  "on": true
+ },
+ {
+  "id": "c8485046f4",
+  "name": "Proxmox annonces",
+  "url": "https://forum.proxmox.com/forums/announcements.7/index.rss",
+  "cat": "Homelab",
+  "on": true
+ },
+ {
+  "id": "06b10f9f80",
+  "name": "Docker Blog",
+  "url": "https://www.docker.com/blog/feed/",
+  "cat": "Homelab",
+  "on": true
+ },
+ {
+  "id": "6c1475a644",
+  "name": "r/homelab (top du jour)",
+  "url": "https://www.reddit.com/r/homelab/top/.rss?t=day",
+  "cat": "Homelab",
+  "on": true,
+  "ttl": 3600
+ },
+ {
+  "id": "381540960e",
+  "name": "AWS What's New",
+  "url": "https://aws.amazon.com/about-aws/whats-new/recent/feed/",
+  "cat": "Cloud",
+  "on": true,
+  "max": 15
+ },
+ {
+  "id": "5f883bbdd9",
+  "name": "Azure Updates",
+  "url": "https://www.microsoft.com/releasecommunications/api/v2/azure/rss",
+  "cat": "Cloud",
+  "on": true,
+  "max": 15
+ },
+ {
+  "id": "19605e0935",
+  "name": "Google Cloud Blog",
+  "url": "https://cloudblog.withgoogle.com/rss/",
+  "cat": "Cloud",
+  "on": true
+ },
+ {
+  "id": "a110c91454",
+  "name": "Let's Encrypt",
+  "url": "https://letsencrypt.org/feed.xml",
+  "cat": "Chiffrement",
+  "on": true
+ },
+ {
+  "id": "090f4a3909",
+  "name": "Schneier on Security",
+  "url": "https://www.schneier.com/feed/atom/",
+  "cat": "Chiffrement",
+  "on": true
+ },
+ {
+  "id": "a8b0397229",
+  "name": "OP-1 : op1repacker (mods firmware)",
+  "url": "https://github.com/op1hacks/op1repacker/releases.atom",
+  "cat": "Firmwares",
+  "on": true
+ },
+ {
+  "id": "25bf2edfb8",
+  "name": "Magic Lantern (Canon)",
+  "url": "https://github.com/reticulatedpines/magiclantern_simplified/releases.atom",
+  "cat": "Firmwares",
+  "on": true
+ },
+ {
+  "id": "7a5a51f6d4",
+  "name": "Teensy : cores PJRC",
+  "url": "https://github.com/PaulStoffregen/cores/tags.atom",
+  "cat": "Firmwares",
+  "on": true
+ },
+ {
+  "id": "a7424c12ba",
+  "name": "ESP-IDF (Espressif)",
+  "url": "https://github.com/espressif/esp-idf/releases.atom",
+  "cat": "Firmwares",
+  "on": true
+ },
+ {
+  "id": "e34fbf924a",
+  "name": "Meshtastic firmware",
+  "url": "https://github.com/meshtastic/firmware/releases.atom",
+  "cat": "Firmwares",
+  "on": true
+ },
+ {
+  "id": "040d2e5a5c",
+  "name": "ExpressLRS",
+  "url": "https://github.com/ExpressLRS/ExpressLRS/releases.atom",
+  "cat": "Firmwares",
+  "on": true
+ },
+ {
+  "id": "59a3f3ee0f",
+  "name": "EdgeTX",
+  "url": "https://github.com/EdgeTX/edgetx/releases.atom",
+  "cat": "Firmwares",
+  "on": true
+ },
+ {
+  "id": "507d0dde28",
+  "name": "Betaflight",
+  "url": "https://github.com/betaflight/betaflight/releases.atom",
+  "cat": "Firmwares",
+  "on": true
+ },
+ {
+  "id": "21feed51fa",
+  "name": "Flipper Zero : Momentum",
+  "url": "https://github.com/Next-Flip/Momentum-Firmware/releases.atom",
+  "cat": "Firmwares",
+  "on": true
+ },
+ {
+  "id": "763b098be3",
+  "name": "Flipper Zero : Unleashed",
+  "url": "https://github.com/DarkFlippers/unleashed-firmware/releases.atom",
+  "cat": "Firmwares",
+  "on": true
+ },
+ {
+  "id": "33af2fad4b",
+  "name": "OpenWrt",
+  "url": "https://github.com/openwrt/openwrt/releases.atom",
+  "cat": "Firmwares",
+  "on": true
+ },
+ {
+  "id": "fffcd29c7d",
+  "name": "OPNsense",
+  "url": "https://github.com/opnsense/core/releases.atom",
+  "cat": "Firmwares",
+  "on": true
+ },
+ {
+  "id": "b206d53192",
+  "name": "Tasmota",
+  "url": "https://github.com/arendst/Tasmota/releases.atom",
+  "cat": "Firmwares",
+  "on": true
+ },
+ {
+  "id": "f6bb1f1371",
+  "name": "ESPHome",
+  "url": "https://github.com/esphome/esphome/releases.atom",
+  "cat": "Firmwares",
+  "on": true
+ },
+ {
+  "id": "cdf34dc2e2",
+  "name": "Hackaday",
+  "url": "https://hackaday.com/blog/feed/",
+  "cat": "Maker",
+  "on": true
+ },
+ {
+  "id": "9a05729bab",
+  "name": "CNX Software",
+  "url": "https://www.cnx-software.com/feed/",
+  "cat": "Maker",
+  "on": true
+ },
+ {
+  "id": "9f330f0f26",
+  "name": "Raspberry Pi News",
+  "url": "https://www.raspberrypi.com/news/feed/",
+  "cat": "Maker",
+  "on": true
+ },
+ {
+  "id": "d3d74929ae",
+  "name": "Forum PJRC (Teensy)",
+  "url": "https://forum.pjrc.com/forums/-/index.rss",
+  "cat": "Maker",
+  "on": true,
+  "max": 15
+ },
+ {
+  "id": "b6183efa42",
+  "name": "Adafruit Blog",
+  "url": "https://blog.adafruit.com/feed/",
+  "cat": "Maker",
+  "on": true,
+  "max": 20
+ },
+ {
+  "id": "4a8d8a9c37",
+  "name": "Arduino Blog",
+  "url": "https://blog.arduino.cc/feed/",
+  "cat": "Maker",
+  "on": true
+ },
+ {
+  "id": "3e6329eca8",
+  "name": "op-forums : OP-1",
+  "url": "https://op-forums.com/c/op-1/6.rss",
+  "cat": "Musique",
+  "on": true
+ },
+ {
+  "id": "7d95279157",
+  "name": "op-forums : EP-133 K.O. II",
+  "url": "https://op-forums.com/c/ep-133/34.rss",
+  "cat": "Musique",
+  "on": true
+ },
+ {
+  "id": "7a0e689c7f",
+  "name": "r/teenageengineering",
+  "url": "https://www.reddit.com/r/teenageengineering/.rss",
+  "cat": "Musique",
+  "on": true,
+  "ttl": 3600
+ },
+ {
+  "id": "a2c2cf4337",
+  "name": "r/synthdiy",
+  "url": "https://www.reddit.com/r/synthdiy/.rss",
+  "cat": "Musique",
+  "on": true,
+  "ttl": 3600
+ },
+ {
+  "id": "8d7b6dcf3a",
+  "name": "Elektronauts",
+  "url": "https://www.elektronauts.com/latest.rss",
+  "cat": "Musique",
+  "on": true
+ },
+ {
+  "id": "1c7610ef0a",
+  "name": "Synthtopia",
+  "url": "https://www.synthtopia.com/feed/",
+  "cat": "Musique",
+  "on": true
+ },
+ {
+  "id": "d8c065d3e3",
+  "name": "CDM (Create Digital Music)",
+  "url": "https://cdm.link/feed/",
+  "cat": "Musique",
+  "on": true
+ },
+ {
+  "id": "3eb449bc34",
+  "name": "Audiofanzine",
+  "url": "https://fr.audiofanzine.com/news/a.rss.xml",
+  "cat": "Musique",
+  "on": true
+ },
+ {
+  "id": "7fc87895b7",
+  "name": "Gearnews FR",
+  "url": "https://www.gearnews.fr/feed/",
+  "cat": "Musique",
+  "on": true
+ },
+ {
+  "id": "e30dc76944",
+  "name": "MusicRadar",
+  "url": "https://www.musicradar.com/feeds/all",
+  "cat": "Musique",
+  "on": true,
+  "max": 20
+ },
+ {
+  "id": "e9b4f2d869",
+  "name": "Strudel (versions)",
+  "url": "https://codeberg.org/uzu/strudel/releases.rss",
+  "cat": "Musique",
+  "on": true
+ },
+ {
+  "id": "5d2e3e4c51",
+  "name": "Dexed (versions)",
+  "url": "https://github.com/asb2m10/dexed/releases.atom",
+  "cat": "Musique",
+  "on": true
+ },
+ {
+  "id": "ee2bf13024",
+  "name": "43rumors (Olympus / OM System)",
+  "url": "https://www.43rumors.com/feed/",
+  "cat": "Photo",
+  "on": true
+ },
+ {
+  "id": "400919e427",
+  "name": "r/M43",
+  "url": "https://www.reddit.com/r/M43/.rss",
+  "cat": "Photo",
+  "on": true,
+  "ttl": 3600
+ },
+ {
+  "id": "58c2e7ac5a",
+  "name": "Phototrend",
+  "url": "https://phototrend.fr/feed/",
+  "cat": "Photo",
+  "on": true
+ },
+ {
+  "id": "c2e77a9e0d",
+  "name": "PetaPixel",
+  "url": "https://petapixel.com/feed/",
+  "cat": "Photo",
+  "on": true
+ },
+ {
+  "id": "837b87668a",
+  "name": "DPReview",
+  "url": "https://www.dpreview.com/feeds/news.xml",
+  "cat": "Photo",
+  "on": true
+ },
+ {
+  "id": "319d54f275",
+  "name": "Kosmo Foto (argentique)",
+  "url": "https://www.kosmofoto.com/feed/",
+  "cat": "Photo",
+  "on": true
+ },
+ {
+  "id": "8f967b8678",
+  "name": "35mmc (argentique)",
+  "url": "https://www.35mmc.com/feed/",
+  "cat": "Photo",
+  "on": true
+ },
+ {
+  "id": "cfea98c5b2",
+  "name": "Emulsive (argentique)",
+  "url": "https://emulsive.org/feed",
+  "cat": "Photo",
+  "on": true
+ },
+ {
+  "id": "1588c6f20c",
+  "name": "darktable (versions)",
+  "url": "https://github.com/darktable-org/darktable/releases.atom",
+  "cat": "Photo",
+  "on": true
+ },
+ {
+  "id": "b952eb40ff",
+  "name": "Time Extension",
+  "url": "https://www.timeextension.com/feeds/latest",
+  "cat": "Rétro & jeux",
+  "on": true
+ },
+ {
+  "id": "c277121bfc",
+  "name": "RetroRGB",
+  "url": "https://www.retrorgb.com/feed",
+  "cat": "Rétro & jeux",
+  "on": true
+ },
+ {
+  "id": "0e3d7a90bc",
+  "name": "Libretro / RetroArch",
+  "url": "https://www.libretro.com/index.php/feed/",
+  "cat": "Rétro & jeux",
+  "on": true
+ },
+ {
+  "id": "149fe3e670",
+  "name": "Amiberry (Amiga)",
+  "url": "https://github.com/BlitterStudio/amiberry/releases.atom",
+  "cat": "Rétro & jeux",
+  "on": true
+ },
+ {
+  "id": "6a6b4fa1e5",
+  "name": "mGBA (Game Boy)",
+  "url": "https://github.com/mgba-emu/mgba/releases.atom",
+  "cat": "Rétro & jeux",
+  "on": true
+ },
+ {
+  "id": "61bc9a4872",
+  "name": "Godot Engine",
+  "url": "https://godotengine.org/rss.xml",
+  "cat": "Rétro & jeux",
+  "on": true
+ },
+ {
+  "id": "fdd61418b8",
+  "name": "Oscar Liang (FPV)",
+  "url": "https://oscarliang.com/feed/",
+  "cat": "Drones & radio",
+  "on": true
+ },
+ {
+  "id": "c657823c73",
+  "name": "Meshtastic Blog",
+  "url": "https://meshtastic.org/blog/rss.xml",
+  "cat": "Drones & radio",
+  "on": true
+ },
+ {
+  "id": "c3c5511099",
+  "name": "RTL-SDR Blog",
+  "url": "https://www.rtl-sdr.com/feed/",
+  "cat": "Drones & radio",
+  "on": true
+ },
+ {
+  "id": "d1c587ecba",
+  "name": "Simon Willison",
+  "url": "https://simonwillison.net/atom/everything/",
+  "cat": "IA",
+  "on": true
+ },
+ {
+  "id": "63bffc4a61",
+  "name": "Ollama (versions)",
+  "url": "https://github.com/ollama/ollama/releases.atom",
+  "cat": "IA",
+  "on": true
+ },
+ {
+  "id": "b613a81e05",
+  "name": "CoinDesk",
+  "url": "https://www.coindesk.com/arc/outboundfeeds/rss/",
+  "cat": "Crypto & trading",
+  "on": true
+ },
+ {
+  "id": "b9cc362ed4",
+  "name": "Cointelegraph",
+  "url": "https://cointelegraph.com/rss",
+  "cat": "Crypto & trading",
+  "on": true
+ },
+ {
+  "id": "ea1f5433d9",
+  "name": "Journal du Coin",
+  "url": "https://journalducoin.com/feed/",
+  "cat": "Crypto & trading",
+  "on": true
+ },
+ {
+  "id": "0828798d56",
+  "name": "Bitcoin Magazine",
+  "url": "https://bitcoinmagazine.com/.rss/full/",
+  "cat": "Crypto & trading",
+  "on": true
+ },
+ {
+  "id": "b09ccb6bb1",
+  "name": "Monero (officiel)",
+  "url": "https://www.getmonero.org/feed.xml",
+  "cat": "Crypto & trading",
+  "on": true
+ },
+ {
+  "id": "6640681371",
+  "name": "r/dogecoin",
+  "url": "https://www.reddit.com/r/dogecoin/.rss",
+  "cat": "Crypto & trading",
+  "on": true,
+  "ttl": 3600
+ },
+ {
+  "id": "79f75c809a",
+  "name": "Freqtrade (versions)",
+  "url": "https://github.com/freqtrade/freqtrade/releases.atom",
+  "cat": "Crypto & trading",
+  "on": true
+ },
+ {
+  "id": "b795b88c2a",
+  "name": "Tom's Hardware FR",
+  "url": "https://www.tomshardware.fr/feed/",
+  "cat": "Matos",
+  "on": true
+ },
+ {
+  "id": "239a972ea3",
+  "name": "Les Numériques",
+  "url": "https://www.lesnumeriques.com/rss.xml",
+  "cat": "Matos",
+  "on": true,
+  "max": 20
+ },
+ {
+  "id": "189ca58493",
+  "name": "ServeTheHome",
+  "url": "https://www.servethehome.com/feed/",
+  "cat": "Matos",
+  "on": true
+ },
+ {
+  "id": "320268802e",
+  "name": "Phoronix",
+  "url": "https://www.phoronix.com/rss.php",
+  "cat": "Matos",
+  "on": true
+ }
+]
