@@ -1,0 +1,14 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+COPY muthur.py sources.json ./
+COPY dist/ ./dist/
+RUN useradd --uid 1000 --create-home --shell /usr/sbin/nologin muthur \
+    && mkdir -p /var/lib/muthur \
+    && chown -R muthur:muthur /var/lib/muthur
+USER muthur
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    MUTHUR_DATA_DIR=/var/lib/muthur
+EXPOSE 8765
+CMD ["python3", "muthur.py", "--host", "0.0.0.0", "--port", "8765", "--no-browser"]

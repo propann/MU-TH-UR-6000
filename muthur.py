@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Veille Azoth - serveur local (Python 3.9+, bibliotheque standard uniquement).
+"""MU-TH-UR 6000 - serveur local (Python 3.9+, bibliotheque standard uniquement).
 
-Lance :  python veille.py        puis ouvre http://127.0.0.1:8765
+Lance :  python muthur.py        puis ouvre http://127.0.0.1:8765
 Options :
     --port 8765          port d'ecoute
     --host 0.0.0.0       ecouter sur le reseau (Raspberry Pi, acces depuis le telephone)
-    --password MOTDEPASSE  protege l'acces (sinon variable d'environnement VEILLE_PASSWORD)
+    --password MOTDEPASSE  protege l'acces (sinon variable d'environnement MUTHUR_PASSWORD)
     --no-browser         ne pas ouvrir le navigateur au demarrage
 
 Pourquoi un serveur ?
@@ -23,7 +23,7 @@ Fonctionnement :
        au plus 40 articles de moins de 45 jours par source.
     3. Le resultat est garde en memoire et dans data/cache.json : au
        redemarrage, l'affichage est immediat.
-    4. data/state.json garde favoris, articles lus et mots surveilles.
+    4. L'etat persistant garde favoris, articles lus et mots surveilles.
     5. crypto() interroge l'API publique CoinGecko (cache 5 min).
 
 Securite :
@@ -40,13 +40,16 @@ import hmac
 import os
 import hashlib
 import html
+import http.client
 import json
 import re
+import shutil
 import sys
 import threading
 import time
 import urllib.parse
 import urllib.request
+import urllib.error
 import webbrowser
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
@@ -56,8 +59,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 WEB = ROOT / "dist"
-DATA = ROOT / "data"
-SOURCES_FILE = ROOT / "sources.json"
+DATA = Path(os.environ.get("MUTHUR_DATA_DIR", str(ROOT / "data"))).expanduser()
+SOURCES_FILE = DATA / "sources.json"
+DEFAULT_SOURCES_FILE = ROOT / "sources.json"
 STATE_FILE = DATA / "state.json"
 CACHE_FILE = DATA / "cache.json"
 
@@ -65,18 +69,22 @@ FEED_TTL = 15 * 60          # secondes avant de re-telecharger un flux
 CRYPTO_TTL = 5 * 60
 MAX_PER_SOURCE = 40
 MAX_AGE_DAYS = 45
-UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) VeilleAzoth/3.0"
+UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) MUTHUR6000/3.0"
 COINS = "bitcoin,monero,dogecoin"   # identifiants CoinGecko, separes par des virgules
 SLOW_HOSTS = {"www.reddit.com": 3.0}  # site -> pause (s) entre deux flux du meme site
-PASSWORD = ""                         # rempli par --password ou VEILLE_PASSWORD
+PASSWORD = ""                         # rempli par --password ou MUTHUR_PASSWORD
+QUANT_PROXY_URL = os.environ.get("QUANT_PROXY_URL", "http://127.0.0.1:3000").rstrip("/")
+SUPERIA_PROXY_URL = os.environ.get("SUPERIA_PROXY_URL", "http://127.0.0.1:3210").rstrip("/")
 
 lock = threading.RLock()
-DATA.mkdir(exist_ok=True)
+DATA.mkdir(parents=True, exist_ok=True)
+if not SOURCES_FILE.exists() and DEFAULT_SOURCES_FILE.is_file():
+    shutil.copyfile(DEFAULT_SOURCES_FILE, SOURCES_FILE)
 
 # Lance par pythonw.exe (raccourci du Bureau), il n'y a pas de console :
-# sys.stdout / sys.stderr valent None. On redirige alors tout vers data/veille.log.
+# sys.stdout / sys.stderr valent None. On redirige alors tout vers data/muthur.log.
 if sys.stdout is None or sys.stderr is None:
-    _log = open(DATA / "veille.log", "a", encoding="utf-8", buffering=1)
+    _log = open(DATA / "muthur.log", "a", encoding="utf-8", buffering=1)
     sys.stdout = sys.stderr = _log
 
 
@@ -95,23 +103,47 @@ def save_json(path, obj):
 
 
 def default_state():
-    """Etat initial. "watch" = mots qui declenchent une ALERTE (securite pro) ;
-    "topics" = tes sujets perso, simplement mis en avant (badge POUR TOI)."""
+    """État initial générique : alertes techniques et thèmes mis en avant."""
     return {"fav": {}, "read": [], "lastVisit": 0, "prevVisit": 0,
             "watch": ["Windows Server", "Active Directory", "Fortinet", "Proxmox",
                       "VMware", "Cisco", "OpenSSH", "pfSense", "OPNsense", "Veeam", "TrueNAS"],
-            "topics": ["Teensy", "EP-133", "KO II", "K.O. II", "OP-1", "Teenage Engineering",
-                       "E-M5", "OM System", "Olympus", "M.Zuiko", "Magic Lantern", "darktable",
-                       "Meshtastic", "LoRa", "ExpressLRS", "ESP32", "RP2040", "Raspberry Pi",
-                       "Amiga", "Game Boy", "LSDJ", "Godot", "Strudel", "Dexed", "Freqtrade",
-                       "Monero", "Dogecoin", "chiptune", "groovebox",
-                       "Omarchy", "Pop!_OS", "COSMIC", "Hyprland"]}
+            "topics": ["Ollama", "Mistral", "Obsidian", "Freqtrade", "infrastructure", "cybersécurité"]}
 
 
 sources = load_json(SOURCES_FILE, [])
 state = {**default_state(), **load_json(STATE_FILE, {})}
 cache = load_json(CACHE_FILE, {})        # id_source -> {fetched, ok, error, items}
 crypto_cache = {"t": 0, "data": None}
+
+
+def probe(url, expected_key=None):
+    """Sonde un service local connu sans transmettre de secret."""
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": UA})
+        with urllib.request.urlopen(req, timeout=1.5) as response:
+            payload = json.loads(response.read(64_000) or b"{}")
+        return {"online": response.status < 400,
+                "detail": payload.get(expected_key) if expected_key else None}
+    except (OSError, ValueError, urllib.error.URLError):
+        return {"online": False, "detail": None}
+
+
+def cockpit_status():
+    """État minimal des briques du cockpit, toutes sondées côté serveur."""
+    ollama = probe("http://127.0.0.1:11434/api/version", "version")
+    superia_url = os.environ.get("SUPERIA_WEB_URL", "http://127.0.0.1:3210").rstrip("/")
+    superia = probe(f"{superia_url}/healthz")
+    trading_url = os.environ.get("QUANT_CORE_URL", "http://127.0.0.1:3000").rstrip("/")
+    trading = probe(f"{trading_url}/api/health")
+    vault_value = os.environ.get("AZOTH_VAULT_PATH", "").strip()
+    vault = Path(vault_value).expanduser() if vault_value else None
+    return {
+        "watch": {"online": True, "detail": f"{len(sources)} sources"},
+        "trading": {**trading, "mode": "dry-run"},
+        "ai": {**ollama, "workspace_online": superia["online"]},
+        "vault": {"online": bool(vault and vault.is_dir()),
+                  "detail": str(vault) if vault else "miroir local non monté"},
+    }
 
 
 def sid(url):
@@ -257,7 +289,7 @@ def fetch_source(src):
     entry = {"fetched": time.time(), "ok": False, "error": "", "items": []}
     try:
         parsed = parse_feed(http_get(src["url"]))
-        # On ignore les articles trop vieux : la veille porte sur l'actualite.
+        # On ignore les articles trop vieux : le cockpit porte sur l'actualite.
         # Exception : les flux de versions (GitHub, Codeberg). Un firmware peut
         # rester des annees sans sortie : on garde ses 5 dernieres versions, quel que soit leur age.
         release = bool(re.search(r"(github\.com|codeberg\.org)/", src["url"]))
@@ -337,7 +369,7 @@ def refresh(force=False):
     for s in active:
         c = cache.get(s["id"], {})
         for i in c.get("items", []):
-            # nom et categorie viennent toujours de sources.json (le cache peut etre ancien)
+            # nom et categorie viennent toujours de data/sources.json (le cache peut etre ancien)
             i["source"], i["cat"] = s["name"], s["cat"]
             items.append(i)
         status.append({"id": s["id"], "ok": c.get("ok", False), "error": c.get("error", ""),
@@ -372,7 +404,7 @@ def crypto():
 def opml():
     """Export des sources au format OPML (import dans Feedly, Inoreader, FreshRSS…)."""
     lines = ['<?xml version="1.0" encoding="UTF-8"?>', '<opml version="2.0">',
-             '<head><title>Veille Azoth</title></head>', '<body>']
+             '<head><title>MU-TH-UR 6000</title></head>', '<body>']
     cats = {}
     for s in sources:
         cats.setdefault(s["cat"], []).append(s)
@@ -394,7 +426,7 @@ MIME = {".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=ut
 
 class Handler(BaseHTTPRequestHandler):
     """Sert l'interface (dist/) et l'API JSON (/api/...)."""
-    server_version = "VeilleAzoth/3.0"
+    server_version = "MUTHUR6000/3.0"
 
     def authorized(self):
         """Authentification HTTP Basic, active seulement si un mot de passe est defini.
@@ -412,11 +444,13 @@ class Handler(BaseHTTPRequestHandler):
 
     def deny(self):
         self.send(401, {"error": "mot de passe requis"},
-                  extra={"WWW-Authenticate": 'Basic realm="Veille Azoth", charset="UTF-8"'})
+                  extra={"WWW-Authenticate": 'Basic realm="MU-TH-UR 6000", charset="UTF-8"'})
 
     def log_message(self, fmt, *args):  # console plus calme
-        if "/api/" in (args[0] if args else "") and " 200 " not in fmt % args:
-            sys.stderr.write("%s\n" % (fmt % args))
+        message = fmt % args
+        request_line = str(args[0]) if args else ""
+        if "/api/" in request_line and " 200 " not in message:
+            sys.stderr.write("%s\n" % message)
 
     def send(self, code, body, ctype="application/json; charset=utf-8", extra=None):
         if not isinstance(body, (bytes, str)):
@@ -443,10 +477,121 @@ class Handler(BaseHTTPRequestHandler):
         origin = self.headers.get("Origin")
         return origin is None or origin == f"http://{self.headers.get('Host')}"
 
+    def proxy_quant(self):
+        """Passe Quant Core derrière l'authentification unique du cockpit."""
+        target = urllib.parse.urlparse(QUANT_PROXY_URL)
+        length = int(self.headers.get("Content-Length") or 0)
+        if length > 2_000_000:
+            return self.send(413, {"error": "requête trop grosse"})
+        body = self.rfile.read(length) if length else None
+        forwarded = {}
+        for key, value in self.headers.items():
+            if key.lower() not in {"authorization", "connection", "host", "content-length", "transfer-encoding"}:
+                forwarded[key] = value
+        forwarded["Host"] = target.netloc
+        forwarded["X-Forwarded-Host"] = self.headers.get("Host", "")
+        forwarded["X-Forwarded-Proto"] = "http"
+        connection = http.client.HTTPConnection(target.hostname, target.port or 80, timeout=15)
+        try:
+            connection.request(self.command, self.path, body=body, headers=forwarded)
+            upstream = connection.getresponse()
+            payload = upstream.read()
+            self.send_response(upstream.status)
+            for key, value in upstream.getheaders():
+                if key.lower() not in {"connection", "content-length", "transfer-encoding"}:
+                    self.send_header(key, value)
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            if self.command != "HEAD":
+                self.wfile.write(payload)
+        except OSError:
+            self.send(502, {"error": "Quant Core indisponible"})
+        finally:
+            connection.close()
+
+    def proxy_superia(self):
+        """Expose Super IA sous /ia/ après l'unique contrôle d'accès du cockpit."""
+        target = urllib.parse.urlparse(SUPERIA_PROXY_URL)
+        length = int(self.headers.get("Content-Length") or 0)
+        if length > 2_000_000:
+            return self.send(413, {"error": "requête trop grosse"})
+        body = self.rfile.read(length) if length else None
+        upstream_path = self.path[3:] or "/"
+        forwarded = {}
+        for key, value in self.headers.items():
+            if key.lower() not in {"authorization", "connection", "host", "content-length", "transfer-encoding"}:
+                forwarded[key] = value
+        forwarded["Host"] = target.netloc
+        # Les modèles locaux peuvent prendre plus d'une minute sur le premier
+        # chargement. Le serveur Super IA borne lui-même les appels à 120 s.
+        connection = http.client.HTTPConnection(target.hostname, target.port or 80, timeout=130)
+        try:
+            connection.request(self.command, upstream_path, body=body, headers=forwarded)
+            upstream = connection.getresponse()
+            content_type = upstream.getheader("Content-Type", "")
+            if "text/event-stream" in content_type:
+                self.send_response(upstream.status)
+                for key, value in upstream.getheaders():
+                    if key.lower() not in {"connection", "content-length", "transfer-encoding", "content-encoding"}:
+                        self.send_header(key, value)
+                self.send_header("Cache-Control", "no-cache, no-transform")
+                self.send_header("X-Accel-Buffering", "no")
+                self.send_header("Connection", "close")
+                self.end_headers()
+                self.close_connection = True
+                if self.command != "HEAD":
+                    while True:
+                        chunk = upstream.read1(4096)
+                        if not chunk:
+                            break
+                        self.wfile.write(chunk)
+                        self.wfile.flush()
+                return
+            payload = upstream.read()
+            if "text/html" in content_type:
+                page = payload.decode("utf-8")
+                page = page.replace("'/api", "'/ia/api").replace("\"/api", "\"/ia/api")
+                page = page.replace('action="/logout"', 'action="/ia/logout"')
+                page = page.replace('action="/session"', 'action="/ia/session"')
+                page = page.replace("'/login'", "'/ia/login'")
+                payload = page.encode("utf-8")
+            self.send_response(upstream.status)
+            for key, value in upstream.getheaders():
+                lowered = key.lower()
+                if lowered in {"connection", "content-length", "transfer-encoding"}:
+                    continue
+                if lowered == "location" and value.startswith("/"):
+                    value = "/ia" + value
+                self.send_header(key, value)
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            if self.command != "HEAD":
+                self.wfile.write(payload)
+        except OSError:
+            self.send(502, {"error": "Super IA indisponible"})
+        finally:
+            connection.close()
+
     def do_GET(self):
         if not self.authorized():
             return self.deny()
         u = urllib.parse.urlparse(self.path)
+        if u.path == "/quant":
+            self.send_response(308)
+            self.send_header("Location", "/quant/")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
+        if u.path.startswith("/quant/"):
+            return self.proxy_quant()
+        if u.path == "/ia":
+            self.send_response(308)
+            self.send_header("Location", "/ia/")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
+        if u.path.startswith("/ia/"):
+            return self.proxy_superia()
         q = urllib.parse.parse_qs(u.query)
         if u.path == "/api/feeds":
             return self.send(200, refresh(force=q.get("force") == ["1"]))
@@ -455,18 +600,50 @@ class Handler(BaseHTTPRequestHandler):
         if u.path == "/api/config":
             with lock:
                 return self.send(200, {"sources": sources, "state": state})
+        if u.path == "/api/cockpit/status":
+            return self.send(200, cockpit_status())
         if u.path == "/api/opml":
             return self.send(200, opml(), "text/x-opml; charset=utf-8",
-                             {"Content-Disposition": 'attachment; filename="veille-tssr.opml"'})
+                             {"Content-Disposition": 'attachment; filename="muthur-sources.opml"'})
         path = "index.html" if u.path in ("", "/") else u.path.lstrip("/")
         f = (WEB / path).resolve()
         if WEB not in f.parents or not f.is_file():
             return self.send(404, {"error": "introuvable"})
         return self.send(200, f.read_bytes(), MIME.get(f.suffix, "application/octet-stream"))
 
+    def do_HEAD(self):
+        """Répond aux contrôles de disponibilité sans envoyer de contenu."""
+        if not self.authorized():
+            self.send_response(401)
+            self.send_header("WWW-Authenticate", 'Basic realm="MU-TH-UR 6000", charset="UTF-8"')
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
+        u = urllib.parse.urlparse(self.path)
+        if u.path.startswith("/quant"):
+            return self.proxy_quant()
+        if u.path.startswith("/ia"):
+            return self.proxy_superia()
+        path = "index.html" if u.path in ("", "/") else u.path.lstrip("/")
+        f = (WEB / path).resolve()
+        if WEB not in f.parents or not f.is_file():
+            self.send_response(404)
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
+        self.send_response(200)
+        self.send_header("Content-Type", MIME.get(f.suffix, "application/octet-stream"))
+        self.send_header("Content-Length", str(f.stat().st_size))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+
     def do_POST(self):
         if not self.authorized():
             return self.deny()
+        if urllib.parse.urlparse(self.path).path.startswith("/quant/"):
+            return self.proxy_quant()
+        if urllib.parse.urlparse(self.path).path.startswith("/ia/"):
+            return self.proxy_superia()
         if not self.same_origin():
             return self.send(403, {"error": "origine refusee"})
         try:
@@ -500,7 +677,7 @@ class Handler(BaseHTTPRequestHandler):
                 save_json(SOURCES_FILE, sources)
                 return self.send(200, {"ok": True})
             if path == "/api/shutdown":
-                # bouton ⏻ de l'interface : utile quand la veille tourne sans fenetre
+                # bouton ⏻ de l'interface : utile quand le cockpit tourne sans fenetre
                 self.send(200, {"ok": True})
                 threading.Thread(target=self.server.shutdown, daemon=True).start()
                 return None
@@ -510,6 +687,24 @@ class Handler(BaseHTTPRequestHandler):
                         s["on"] = not s.get("on", True)
                 save_json(SOURCES_FILE, sources)
                 return self.send(200, {"ok": True})
+        return self.send(404, {"error": "route inconnue"})
+
+    def do_PUT(self):
+        if not self.authorized():
+            return self.deny()
+        if urllib.parse.urlparse(self.path).path.startswith("/quant/"):
+            return self.proxy_quant()
+        if urllib.parse.urlparse(self.path).path.startswith("/ia/"):
+            return self.proxy_superia()
+        return self.send(404, {"error": "route inconnue"})
+
+    def do_DELETE(self):
+        if not self.authorized():
+            return self.deny()
+        if urllib.parse.urlparse(self.path).path.startswith("/quant/"):
+            return self.proxy_quant()
+        if urllib.parse.urlparse(self.path).path.startswith("/ia/"):
+            return self.proxy_superia()
         return self.send(404, {"error": "route inconnue"})
 
 
@@ -530,7 +725,7 @@ def lan_ip():
             s.connect(("192.0.2.1", 80))   # aucune donnee n'est envoyee
             return s.getsockname()[0]
     except OSError:
-        return "IP-DU-PI"
+        return "adresse réseau indisponible"
 
 
 def background_refresh():
@@ -547,16 +742,16 @@ def main():
     global PASSWORD
     port = int(arg("--port", 8765))
     host = arg("--host", "127.0.0.1")
-    PASSWORD = arg("--password", os.environ.get("VEILLE_PASSWORD", ""))
+    PASSWORD = arg("--password", os.environ.get("MUTHUR_PASSWORD", ""))
     url = f"http://127.0.0.1:{port}/"
     try:
         srv = ThreadingHTTPServer((host, port), Handler)
     except OSError:
-        print(f"Le port {port} est deja utilise : la veille tourne surement deja. Ouverture de {url}")
+        print(f"Le port {port} est deja utilise : le cockpit tourne surement deja. Ouverture de {url}")
         webbrowser.open(url)
         return
     print("=" * 56)
-    print("  MU-TH-UR // VEILLE AZOTH  en ligne")
+    print("  MU-TH-UR // MU-TH-UR 6000  en ligne")
     print(f"  Sur cette machine : {url}")
     if host != "127.0.0.1":
         print(f"  Depuis le reseau  : http://{lan_ip()}:{port}/")

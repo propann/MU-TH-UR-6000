@@ -1,9 +1,9 @@
 /* =====================================================================
- * MU-TH-UR // VEILLE AZOTH — interface
+ * MU-TH-UR // MU-TH-UR 6000 — interface
  * ---------------------------------------------------------------------
  * Ce fichier tourne dans le navigateur. Il ne lit jamais les flux RSS
  * lui-même (le navigateur l'interdit entre sites : CORS). Il interroge
- * le serveur local veille.py :
+ * le serveur local muthur.py :
  *   GET  /api/feeds[?force=1]  -> articles normalisés + état des sources
  *   GET  /api/crypto           -> cours BTC / XMR / DOGE (CoinGecko)
  *   GET  /api/config           -> sources + état utilisateur
@@ -23,7 +23,7 @@ const S = {
   fav: {},            // favoris : id -> article complet (survit à la disparition du flux)
   read: new Set(),    // ids des articles lus
   watch: [],          // mots surveillés -> ALERTE (sécurité, matériel pro)
-  topics: [],         // mes sujets perso -> badge « POUR TOI »
+  topics: [],         // thèmes suivis localement -> badge « POUR TOI »
   prevVisit: 0,       // date de la visite précédente -> détermine les « nouveaux »
   tab: 'Tout',        // onglet actif
   shown: 60,          // pagination simple
@@ -34,10 +34,10 @@ const S = {
 // Onglets, en deux familles. Les catégories des sources (sources.json) doivent
 // figurer ici pour avoir leur onglet.
 const GROUPS = {
-  PRO: ['Alertes', 'Cyber & piratage', 'Systèmes', 'Réseau', 'Homelab', 'Cloud', 'Chiffrement'],
-  PERSO: ['Firmwares', 'Maker', 'Musique', 'Photo', 'Rétro & jeux', 'Drones & radio', 'IA', 'Crypto & trading', 'Matos'],
+  INFRA: ['Sécurité', 'Infrastructure'],
+  'IA & MARCHÉS': ['IA', 'Marchés'],
 };
-const CATS = [...GROUPS.PRO, ...GROUPS.PERSO];
+const CATS = [...GROUPS.INFRA, ...GROUPS['IA & MARCHÉS']];
 
 /* ---------- 2) UTILITAIRES ------------------------------------------ */
 const $ = s => document.querySelector(s);
@@ -57,6 +57,33 @@ async function api(path, body) {
   const data = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(data.error || r.statusText);
   return data;
+}
+
+/** Met à jour les quatre briques visibles du cockpit. */
+async function loadCockpit() {
+  try {
+    const status = await api('/api/cockpit/status');
+    Object.entries(status).forEach(([name, value]) => {
+      const el = document.querySelector(`[data-service="${name}"]`);
+      if (!el) return;
+      el.className = value.online ? 'online' : 'offline';
+      const label = value.online ? 'EN LIGNE' : 'EN ATTENTE';
+      el.textContent = `${label}${value.mode ? ` · ${value.mode.toUpperCase()}` : ''}`;
+      el.title = value.detail || '';
+    });
+    const trading = $('#tradingModule');
+    trading.href = status.trading?.online ? '/quant/' : '#';
+    trading.target = status.trading?.online ? '_blank' : '';
+    trading.rel = status.trading?.online ? 'noopener noreferrer' : '';
+    const ai = $('#aiModule');
+    ai.href = status.ai?.workspace_online ? '/ia/' : '#';
+    ai.target = status.ai?.workspace_online ? '_blank' : '';
+    ai.rel = status.ai?.workspace_online ? 'noopener noreferrer' : '';
+  } catch {
+    document.querySelectorAll('[data-service]').forEach(el => {
+      el.className = 'offline'; el.textContent = 'INDISPONIBLE';
+    });
+  }
 }
 
 /** « il y a 3 h » compact, pour la colonne de gauche. */
@@ -89,11 +116,11 @@ function saveState() {
 const HOT = /\b(critique|critical|0-?day|zero[- ]?day|exploit(?:é|ée|ed|ation|s)?|activement exploitée?|actively exploited|ransomware|rançongiciel|backdoor|porte dérobée|fuite de données|data breach|wiper|RCE|remote code execution|exécution de code arbitraire|manual intervention|intervention manuelle)\b/i;
 // « manual intervention » : les annonces Arch Linux (donc Omarchy) à lire AVANT de mettre à jour.
 const CVE = /CVE-\d{4}-\d{4,7}/gi;
-const HOT_CATS = new Set(['Alertes', 'Cyber & piratage', 'Systèmes', 'Réseau', 'Homelab', 'Cloud']);
+const HOT_CATS = new Set(['Sécurité', 'Infrastructure']);
 // Vocabulaire « sécurité » : un mot surveillé hors des catégories sécurité ne déclenche
 // une alerte que si le titre parle aussi de faille (évite « Proxmox » dans une discussion r/homelab).
 const SEC = /\b(vuln\w*|faille|flaw|CVE|patch\w*|correctif|security|sécurité|attaque|attack|hack\w*|pirat\w*|compromi\w*|bypass|exploit\w*)\b/i;
-const SEC_CATS = new Set(['Alertes', 'Cyber & piratage']);
+const SEC_CATS = new Set(['Sécurité']);
 
 /**
  * Cherche un mot-clé comme mot entier (insensible à la casse) :
@@ -132,8 +159,7 @@ const isNew = i => S.prevVisit && i.date > S.prevVisit;
 
 /**
  * Premier de « mes sujets » cité par l'article (titre + résumé), ou undefined. Résultat mémorisé.
- * Les sources dédiées à un sujet (« Forum PJRC (Teensy) », « r/dogecoin »…) sont ignorées pour
- * ce sujet : tout y parle de lui. Le badge sert à repérer ton sujet dans les sources généralistes.
+ * Les sources dédiées au thème sont ignorées pour ce même thème afin d’éviter les doublons. Le badge sert à repérer ton sujet dans les sources généralistes.
  */
 function topicOf(i) {
   if (!('_t' in i)) {
@@ -152,7 +178,7 @@ function inTab(i) {
     case 'Tout': case 'Favoris': return true;
     case 'Priorité': return !!alertReason(i);
     case 'Pour toi': return !!topicOf(i);
-    case 'PRO': case 'PERSO': return GROUPS[S.tab].includes(i.cat);
+    case 'INFRA': case 'IA & MARCHÉS': return GROUPS[S.tab].includes(i.cat);
     default: return i.cat === S.tab;
   }
 }
@@ -172,16 +198,16 @@ function filtered() {
     (!q || `${i.title} ${i.summary} ${i.source}`.toLowerCase().includes(q)));
 }
 
-/** Onglets sur trois lignes : vues transverses, famille PRO, famille PERSO. Chiffre = non lus. */
+/** Onglets sur trois lignes : vues transverses, famille infrastructure, famille IA et marchés. Chiffre = non lus. */
 function renderTabs() {
   const unread = S.items.filter(i => !S.read.has(i.id));
   const n = f => unread.filter(f).length;
   const btn = (t, c, cls = '') => `<button data-tab="${esc(t)}" class="${cls} ${t === S.tab ? 'on' : ''}">${esc(t)}<b>${c}</b></button>`;
   const row = (label, cats) => `<div class="row"><span class="grp">${label}</span>` +
-    btn(label, n(i => GROUPS[label].includes(i.cat)), 'all') + cats.map(c => btn(c, n(i => i.cat === c))).join('') + '</div>';
+    btn(label, n(i => cats.includes(i.cat)), 'all') + cats.map(c => btn(c, n(i => i.cat === c))).join('') + '</div>';
   $('#tabs').innerHTML = `<div class="row">${btn('Tout', unread.length)}${btn('Priorité', n(alertReason), 'red')}` +
     `${btn('Pour toi', n(topicOf), 'you')}${btn('Favoris', Object.keys(S.fav).length)}</div>` +
-    row('PRO', GROUPS.PRO) + row('PERSO', GROUPS.PERSO);
+    row('INFRA', GROUPS.INFRA) + row('IA & MARCHÉS', GROUPS['IA & MARCHÉS']);
 }
 
 /** HTML d'un article de la liste principale. */
@@ -307,8 +333,8 @@ function renderAll() { renderTabs(); renderFeed(); renderAlerts(); renderStat();
 
 /** Télécharge les flux. force=true ignore le cache de 15 min du serveur. */
 async function loadFeeds(force = false) {
-  const hal = $('#hal');
-  hal.classList.add('busy');
+  const muthurMark = $('#muthurMark');
+  muthurMark.classList.add('busy');
   setTag(force ? 'INTERROGATION FORCÉE DE TOUTES LES SOURCES…' : 'SYNCHRONISATION…');
   try {
     const d = await api('/api/feeds' + (force ? '?force=1' : ''));
@@ -317,9 +343,9 @@ async function loadFeeds(force = false) {
     renderAll(); renderSources();
     setTag(`${d.items.length} ARTICLES · ${d.status.filter(s => s.ok).length} SOURCES EN LIGNE · ${new Date().toLocaleTimeString('fr-FR')}`);
   } catch (e) {
-    setTag('ERREUR : serveur injoignable. Lance « Lancer-Veille.bat ».');
+    setTag('ERREUR : serveur injoignable. Lance « scripts/deployer.sh ».');
     $('#feed').innerHTML = `<div class="empty">LIAISON PERDUE AVEC LE SERVEUR LOCAL.<br><small>${esc(e.message)}</small></div>`;
-  } finally { hal.classList.remove('busy'); }
+  } finally { muthurMark.classList.remove('busy'); }
   api('/api/crypto').then(renderTicker).catch(() => renderTicker({ error: 'hors ligne' }));
 }
 
@@ -345,21 +371,21 @@ function toggleRead(id, force) {
 }
 
 /**
- * Synthèse Markdown des favoris : la base de ton compte rendu de veille
- * (dossier professionnel TSSR, réunion d'équipe, fiche hebdo…).
+ * Synthèse Markdown des favoris : la base de ton compte rendu de actualité
+ * (réunion d’équipe ou fiche hebdomadaire).
  */
 function exportSynthese() {
   const favs = Object.values(S.fav).sort((a, b) => b.date - a.date);
   const d = new Date().toLocaleDateString('fr-FR', { dateStyle: 'full' });
   const week = Date.now() / 1000 - 7 * 86400;
   const alerts = S.items.filter(i => i.date >= week && alertReason(i)).slice(0, 15);
-  let md = `# Veille Azoth — synthèse du ${d}\n\n`;
+  let md = `# MU-TH-UR 6000 — résumé du ${d}\n\n`;
   md += `> ${favs.length} article(s) retenu(s) · ${alerts.length} alerte(s) sur 7 jours · ${Object.keys(S.status).length} sources suivies\n\n`;
   md += `## Alertes de sécurité de la semaine\n\n`;
   md += alerts.length ? alerts.map(i => `- **${i.title}** — ${i.source}, ${new Date(i.date * 1000).toLocaleDateString('fr-FR')} (${alertReason(i)})${cvesOf(i).length ? ' · ' + cvesOf(i).join(', ') : ''}  \n  ${i.link}`).join('\n') + '\n\n' : '_Aucune._\n\n';
   const byCat = {};
   favs.forEach(f => (byCat[f.cat] ||= []).push(f));
-  const fw = S.items.filter(i => i.cat === 'Firmwares' && i.date >= week);
+  const fw = S.items.filter(i => i.cat === 'Embarqué' && i.date >= week);
   md += `## Nouvelles versions de firmwares et logiciels (7 jours)\n\n`;
   md += fw.length ? fw.map(i => `- ${i.title} — ${new Date(i.date * 1000).toLocaleDateString('fr-FR')}  \n  ${i.link}`).join('\n') + '\n\n' : '_Aucune._\n\n';
   md += `## Articles retenus\n\n`;
@@ -374,7 +400,7 @@ function exportSynthese() {
   }
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([md], { type: 'text/markdown;charset=utf-8' }));
-  a.download = `veille-azoth-${new Date().toISOString().slice(0, 10)}.md`;
+  a.download = `muthur-${new Date().toISOString().slice(0, 10)}.md`;
   a.click(); URL.revokeObjectURL(a.href);
 }
 
@@ -395,14 +421,23 @@ $('#tabs').addEventListener('click', e => {
 ['#q', '#period', '#unread', '#onlyNew'].forEach(s => $(s).addEventListener('input', () => { S.shown = 60; S.cursor = -1; renderFeed(); }));
 $('#more').onclick = () => { S.shown += 60; renderFeed(); };
 $('#markAll').onclick = () => { S.view.forEach(i => S.read.add(i.id)); saveState(); renderAll(); };
-$('#hal').onclick = () => loadFeeds(true);
+$('#muthurMark').onclick = () => loadFeeds(true);
 $('#btnSynth').onclick = exportSynthese;
+$('#modules').addEventListener('click', e => {
+  const module = e.target.closest('[data-module]');
+  if (!module) return;
+  if (module.dataset.module === 'trading' && module.getAttribute('href') !== '#') return;
+  if (module.dataset.module === 'ai' && module.getAttribute('href') !== '#') return;
+  e.preventDefault();
+  const names = { trading: 'Quant Core', ai: 'IA locale', vault: 'Cœur Obsidian' };
+  alert(`${names[module.dataset.module]} : l’état est déjà supervisé. L’interface native sera activée à l’étape suivante.`);
+});
 
-/** Arrête le serveur local (la veille lancée par l'icône tourne sans fenêtre). */
+/** Arrête le serveur local (le cockpit lancée par l'icône tourne sans fenêtre). */
 $('#btnOff').onclick = async () => {
-  if (!confirm('Arrêter la veille ? (relance-la avec l’icône du Bureau)')) return;
+  if (!confirm('Arrêter le cockpit ? (relance-la avec l’icône du Bureau)')) return;
   await api('/api/shutdown', {}).catch(() => {});
-  document.body.innerHTML = '<div id="boot"><pre>&gt; MU-TH-UR 6000 HORS LIGNE.\n\nAU REVOIR AZOTH.\n\n(tu peux fermer cet onglet)</pre></div>';
+  document.body.innerHTML = '<div id="boot"><pre>&gt; MU-TH-UR 6000 HORS LIGNE.\n\nSESSION TERMINÉE.\n\n(tu peux fermer cet onglet)</pre></div>';
 };
 
 /** Branche un formulaire « ajouter un mot » et sa liste de puces. */
@@ -486,22 +521,22 @@ const rain = (() => {
 })();
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 let rainOn = !reduced;
-try { const v = localStorage.getItem('veille-rain'); if (v !== null) rainOn = v === '1'; } catch { /* stockage indisponible */ }
+try { const v = localStorage.getItem('muthur-rain'); if (v !== null) rainOn = v === '1'; } catch { /* stockage indisponible */ }
 rainOn ? rain.on() : rain.off();
 $('#btnRain').onclick = () => {
   rainOn = !rainOn; rainOn ? rain.on() : rain.off();
-  try { localStorage.setItem('veille-rain', rainOn ? '1' : '0'); } catch { /* rien */ }
+  try { localStorage.setItem('muthur-rain', rainOn ? '1' : '0'); } catch { /* rien */ }
 };
 
 /** Séquence de démarrage façon MU-TH-UR (une fois par session, clic pour passer). */
 function boot() {
   const el = $('#boot');
   let seen = false;
-  try { seen = sessionStorage.getItem('veille-boot') === '1'; sessionStorage.setItem('veille-boot', '1'); } catch { /* rien */ }
+  try { seen = sessionStorage.getItem('muthur-boot') === '1'; sessionStorage.setItem('muthur-boot', '1'); } catch { /* rien */ }
   if (seen || reduced) { el.remove(); return; }
-  const lines = ['WEYLAND-YUTANI CORP.  //  MU-TH-UR 6000', '', '> UTILISATEUR : AZOTH', '> INITIALISATION INTERFACE 2037 ........ OK',
-    '> CONNEXION RÉSEAU DE VEILLE ............ OK', '> CHARGEMENT DES SOURCES ................ OK',
-    '', 'BONJOUR AZOTH. JE SUIS PRÊTE.', '', '« I\'m sorry Dave, I\'m afraid I can\'t do that. »  — HAL 9000'];
+  const lines = ['WEYLAND-YUTANI CORP.  //  MU-TH-UR 6000', '', '> UTILISATEUR : OPÉRATEUR', '> INITIALISATION INTERFACE 2037 ........ OK',
+    '> CONNEXION RÉSEAU DE ACTUALITÉS ............ OK', '> CHARGEMENT DES SOURCES ................ OK',
+    '', 'SYSTÈME PRÊT. EN ATTENTE DE VOTRE COMMANDE.'];
   const txt = lines.join('\n'); let n = 0;
   const end = () => { el.classList.add('off'); setTimeout(() => el.remove(), 450); };
   el.onclick = end;
@@ -511,6 +546,7 @@ function boot() {
 /* ---------- 7) DÉMARRAGE -------------------------------------------- */
 (async function start() {
   boot();
+  loadCockpit();
   renderFeed();
   try {
     const cfg = await api('/api/config');
@@ -527,5 +563,6 @@ function boot() {
     renderSources(); renderWatch();
   } catch { /* loadFeeds affichera l'erreur */ }
   await loadFeeds();
+  setInterval(loadCockpit, 30 * 1000);
   setInterval(() => loadFeeds(), 15 * 60 * 1000);   // rafraîchissement auto toutes les 15 min
 })();
