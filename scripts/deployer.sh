@@ -16,13 +16,25 @@ if ! docker compose version >/dev/null 2>&1; then
 fi
 
 git submodule update --init --recursive
-mkdir -p private/empty-vault private/empty-inbox
+mkdir -p private/empty-vault private/empty-inbox \
+  "$HOME/.local/share/muthur" "$HOME/.superia"
+chmod 700 "$HOME/.local/share/muthur" "$HOME/.superia"
+
+# Reprendre les préférences et le cache de l'ancienne instance sur la machine,
+# sans copier sa configuration de flux ni aucun fichier dans le dépôt.
+legacy_data="$HOME/serveur-local/sources/veille-azoth/data"
+for name in state.json cache.json; do
+  if [[ -f "$legacy_data/$name" && ! -e "$HOME/.local/share/muthur/$name" ]]; then
+    install -m 600 "$legacy_data/$name" "$HOME/.local/share/muthur/$name"
+  fi
+done
 
 new_install=false
 if [[ ! -f .env ]]; then
   new_install=true
   python3 - <<'PY'
 from pathlib import Path
+import re
 import secrets
 
 source = Path('deploy/.env.example').read_text()
@@ -35,6 +47,8 @@ if legacy_path.is_file():
             break
 values = {
     'MUTHUR_PASSWORD': legacy_password or secrets.token_urlsafe(28),
+    'MUTHUR_DATA_HOST_PATH': str(Path.home() / '.local' / 'share' / 'muthur'),
+    'SUPERIA_HOME_HOST_PATH': str(Path.home() / '.superia'),
     'FREQTRADE_PASSWORD': secrets.token_urlsafe(32),
     'FREQTRADE_API_JWT_SECRET': secrets.token_hex(32),
     'FREQTRADE_WS_TOKEN': secrets.token_urlsafe(32),
@@ -44,7 +58,7 @@ values = {
     'OBSIDIAN_INBOX_HOST_PATH': str(Path.home() / 'GoogleDrive' / 'SuperIA-Inbox'),
 }
 for key, value in values.items():
-    source = source.replace(f'{key}=GÉNÉRÉ_PAR_LE_SCRIPT', f'{key}={value}')
+    source = re.sub(rf'(?m)^{re.escape(key)}=.*$', f'{key}={value}', source)
 source = source.replace('FREQTRADE_ADMIN_PASSWORD=IDENTIQUE_AU_MUTHUR_PASSWORD', f"FREQTRADE_ADMIN_PASSWORD={values['MUTHUR_PASSWORD']}")
 Path('.env').write_text(source)
 Path('.env').chmod(0o600)
@@ -53,6 +67,25 @@ Path('.muthur-first-password').chmod(0o600)
 PY
   printf 'Configuration locale initialisée. Le mot de passe initial se trouve dans .muthur-first-password (fichier privé).\n'
 fi
+
+# Compléter sans écraser une configuration déjà créée par une version
+# antérieure du script.
+python3 - <<'PY'
+from pathlib import Path
+import re
+
+path = Path('.env')
+text = path.read_text()
+defaults = {
+    'MUTHUR_DATA_HOST_PATH': str(Path.home() / '.local' / 'share' / 'muthur'),
+    'SUPERIA_HOME_HOST_PATH': str(Path.home() / '.superia'),
+}
+for key, value in defaults.items():
+    if not re.search(rf'(?m)^{re.escape(key)}=', text):
+        text += f'\n{key}={value}\n'
+path.write_text(text)
+path.chmod(0o600)
+PY
 
 if command -v systemctl >/dev/null 2>&1 && systemctl --user list-unit-files ollama.service --no-legend 2>/dev/null | grep -q ollama.service; then
   systemctl --user start ollama.service

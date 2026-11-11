@@ -6,7 +6,7 @@ Depuis la racine clonée avec ses sous-modules :
 bash scripts/deployer.sh
 ```
 
-Le script vérifie Git, Python, Docker et Compose, initialise les sous-modules, prépare `.env` en permissions `0600`, construit les interfaces, arrête les anciennes unités systemd et la pile Compose Quant sans supprimer leurs volumes, puis démarre Ollama, le montage Obsidian, le cockpit et la console Quant.
+Le script vérifie Git, Python, Docker et Compose, initialise les sous-modules, prépare `.env` en permissions `0600`, reprend le cache et les préférences de l'ancien portail, réutilise le coffre local Super IA, construit les interfaces, arrête les anciennes unités systemd et la pile Compose Quant sans supprimer leurs volumes, puis démarre Ollama, le montage Obsidian, le cockpit et la console Quant.
 
 Il ne télécharge pas de poids Ollama et ne démarre pas le moteur Freqtrade. L’adresse d’accès locale est `http://127.0.0.1:8765`; depuis un autre appareil du même réseau, utiliser l’adresse LAN de la machine. Le pare-feu doit autoriser uniquement ce sous-réseau.
 
