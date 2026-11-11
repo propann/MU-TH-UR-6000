@@ -1,19 +1,24 @@
-# --- Données personnelles et générées à l'exécution (jamais dans le dépôt) ---
-# favoris, articles lus, mots surveillés, cache des flux, journal
-data/
-
-# --- Python ---
 __pycache__/
+.env
+.env.*
+!.env.example
+data/
+*.sqlite
+*.sqlite3
+*.db
+*.log
+*.bak
+*.backup
+models/
+ollama/
+.obsidian/
+node_modules/
+
 *.py[cod]
-*.tmp
+data/*.json
+data/*.log
+data/*.tmp
 
-# --- Fichiers temporaires Office / systèmes ---
-~$*
-*.~lock.*#
-Thumbs.db
-desktop.ini
-.DS_Store
 
-# --- Éditeurs ---
-.vscode/
-.idea/
+.muthur-first-password
+private/

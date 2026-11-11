@@ -1,4 +1,4 @@
-"""Genere dist/azoth.ico : l'oeil de HAL 9000 (Python pur, sans bibliotheque externe).
+"""Genere dist/muthur.ico : voyant MU-TH-UR (Python pur, sans bibliotheque externe).
 
 Usage : python outils/creer_icone.py
 Le fichier ICO contient plusieurs tailles (16 a 256 px), chacune encodee en PNG.
@@ -8,7 +8,7 @@ import struct
 import zlib
 from pathlib import Path
 
-OUT = Path(__file__).resolve().parent.parent / "dist" / "azoth.ico"
+OUT = Path(__file__).resolve().parent.parent / "dist" / "muthur.ico"
 
 
 def mix(a, b, t):
@@ -16,7 +16,7 @@ def mix(a, b, t):
 
 
 def pixel(x, y, n):
-    """Couleur RGBA d'un pixel : bague metallique, iris rouge, coeur jaune, reflet."""
+    """Couleur RGBA d’un pixel : façade industrielle, témoin vert ambre et reflet."""
     c = (n - 1) / 2
     d = math.hypot(x - c, y - c) / (n / 2)   # 0 au centre, 1 au bord
     if d > 1:
@@ -26,10 +26,10 @@ def pixel(x, y, n):
         col = mix((70, 70, 72), (25, 25, 27), (d - 0.86) / 0.14)
     elif d > 0.80:                            # liseré noir
         col = (8, 8, 8)
-    else:                                     # oeil : degrade radial
+    else:                                     # voyant : degrade radial
         r = d / 0.80
-        stops = [(0, (255, 246, 160)), (0.10, (255, 120, 40)), (0.30, (215, 22, 12)),
-                 (0.65, (95, 6, 4)), (1, (18, 0, 0))]
+        stops = [(0, (224, 207, 150)), (0.10, (149, 171, 124)), (0.30, (81, 111, 82)),
+                 (0.65, (32, 52, 37)), (1, (9, 14, 10))]
         for (p0, c0), (p1, c1) in zip(stops, stops[1:]):
             if r <= p1:
                 col = mix(c0, c1, (r - p0) / (p1 - p0))
@@ -37,7 +37,7 @@ def pixel(x, y, n):
         # petit reflet en haut a droite
         hx, hy = x - (c + n * 0.17), y - (c - n * 0.2)
         if (hx / (n * 0.07)) ** 2 + (hy / (n * 0.04)) ** 2 < 1:
-            col = mix(col, (255, 255, 255), 0.35)
+            col = mix(col, (238, 228, 188), 0.28)
     return (*col, round(255 * edge))
 
 

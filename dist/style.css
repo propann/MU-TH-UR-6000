@@ -1,7 +1,7 @@
 /* =====================================================================
- * MU-TH-UR // VEILLE AZOTH — styles
- * Ambiance : terminal phosphore vert (Matrix, MU-TH-UR 6000 d'Alien)
- * + l'œil rouge de HAL 9000 (bouton « rafraîchir »).
+ * MU-TH-UR 6000 — interface cockpit
+ * Ambiance : terminaux industriels, métal sombre, phosphore et témoins ambre.
+ * Référence esthétique : Nostromo, MU-TH-UR 6000.
  * Toutes les couleurs sont des variables ci-dessous : change-les ici
  * pour modifier le thème entier.
  * Plan : variables · base · effets (pluie, scanlines, boot) · en-tête ·
@@ -10,11 +10,11 @@
  * ===================================================================== */
 :root{
   /* fond et panneaux */
-  --bg:#030604; --panel:#07100a; --panel2:#0a1710; --line:#143521; --line2:#1d4a2e;
-  --g:#3dff7f; --g2:#27c25c; --gd:#5f9a72; --mut:#5c7d67;
-  --amber:#ffb53d; --red:#ff3b2f; --red2:#8a120c; --txt:#c9f5d6;
-  --you:#b9a8ff;   /* violet : ce qui concerne « mes sujets » */
-  --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace; --term:'VT323',var(--mono);
+  --bg:#080b09; --panel:#101512; --panel2:#151b17; --line:#303a32; --line2:#465349;
+  --g:#9bb792; --g2:#789270; --gd:#829285; --mut:#7a857c;
+  --amber:#d1aa68; --red:#cf6d5e; --red2:#71362f; --txt:#dce2db;
+  --you:#c0a77e;   /* teinte ambre des thèmes correspondants */
+  --mono:'DejaVu Sans Mono',ui-monospace,Consolas,monospace; --term:'DejaVu Sans Mono',ui-monospace,monospace;
 }
 *{box-sizing:border-box}
 html{background:var(--bg)}
@@ -38,17 +38,27 @@ body::after{content:"";position:fixed;inset:0;z-index:49;pointer-events:none;bac
 
 /* header */
 .top{display:flex;align-items:center;gap:18px;padding:18px clamp(16px,3vw,36px);border-bottom:1px solid var(--line)}
-.hal{width:58px;height:58px;flex:none;border-radius:50%;padding:0;border:3px solid #2a2a2a;background:radial-gradient(circle at 50% 50%,#fff6a0 0 6%,#ff5a2a 12%,#d0140b 30%,#5a0503 58%,#120000 72%);box-shadow:0 0 0 4px #0b0b0b,0 0 0 6px #3a3a3a,0 0 22px #ff2a1a66;position:relative}
-.hal span{position:absolute;inset:8px 14px auto auto;width:12px;height:7px;border-radius:50%;background:#fff3;transform:rotate(35deg)}
-.hal:hover{box-shadow:0 0 0 4px #0b0b0b,0 0 0 6px #3a3a3a,0 0 34px #ff2a1aaa}
-.hal.busy{animation:halpulse 1s ease-in-out infinite}
-@keyframes halpulse{50%{box-shadow:0 0 0 4px #0b0b0b,0 0 0 6px #3a3a3a,0 0 50px #ff2a1a;filter:brightness(1.35)}}
+.muthur-mark{width:58px;height:58px;flex:none;border-radius:3px;padding:0;border:1px solid #728073;background:linear-gradient(145deg,#252d28,#0d110e);box-shadow:inset 0 0 0 3px #080a08,0 0 0 2px #080a08,0 0 16px #9bb79222;position:relative}
+.muthur-mark span{position:absolute;inset:17px auto auto 17px;width:22px;height:22px;border-radius:50%;background:radial-gradient(circle,#d1c08b 0 12%,#95aa83 20%,#47604b 52%,#18211a 72%);box-shadow:0 0 10px #a7bd8344}
+.muthur-mark:hover{box-shadow:inset 0 0 0 3px #080a08,0 0 0 2px #080a08,0 0 24px #9bb79255}
+.muthur-mark.busy{animation:muthur-pulse 1s ease-in-out infinite}
+@keyframes muthur-pulse{50%{box-shadow:inset 0 0 0 3px #080a08,0 0 0 2px #080a08,0 0 27px #d1aa6877;filter:brightness(1.3)}}
 .ident{flex:1;min-width:0}
 h1{font:400 clamp(26px,3.3vw,40px)/1 var(--term);margin:0;color:var(--g);letter-spacing:2px;text-shadow:0 0 10px #3dff7f88}
 h1 em{color:var(--red);font-style:normal;text-shadow:0 0 10px var(--red)}
 #tagline{margin:4px 0 0;color:var(--gd);font-size:12px;letter-spacing:1.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .clock{font:34px var(--term);color:var(--amber);text-shadow:0 0 10px #ffb53d77}
 .tools{display:flex;gap:8px}
+
+/* modules du cockpit */
+.modules{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding:14px clamp(16px,3vw,36px) 0}
+.module{display:grid;gap:2px;text-align:left;padding:11px 13px;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);text-decoration:none;color:var(--txt)}
+.module:hover,.module.on{border-color:var(--g);box-shadow:0 0 14px #3dff7f22}
+.module span{font:23px/1 var(--term);letter-spacing:1px;color:var(--g)}
+.module b{font-size:10px;letter-spacing:1px;color:var(--amber)}
+.module b.online{color:var(--g)}
+.module b.offline{color:var(--red)}
+.module small{color:var(--mut);font-size:11px}
 
 /* ticker */
 .ticker{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding:16px clamp(16px,3vw,36px)}
@@ -95,18 +105,12 @@ h1 em{color:var(--red);font-style:normal;text-shadow:0 0 10px var(--red)}
 .meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:11px;color:var(--mut);letter-spacing:.5px}
 .tag{color:var(--bg);background:var(--gd);padding:0 5px;border-radius:2px;font-weight:600}
 /* une couleur par catégorie (classe = premier mot de la catégorie, sans accent) */
-.tag.c-Alertes{background:var(--red);color:#fff}
-.tag.c-Cyber{background:#ff7a3d}
-.tag.c-Homelab,.tag.c-Cloud{background:#3fc6b0}
-.tag.c-Firmwares{background:#ff5fc8}
-.tag.c-Maker{background:#ffd23d}
-.tag.c-Musique{background:#b9a8ff}
-.tag.c-Photo{background:#e8e2d0}
-.tag.c-Retro{background:#ff9f5a}
-.tag.c-Drones{background:#7fd0ff}
+.tag.c-Securite{background:var(--red);color:#fff}
+.tag.c-Infrastructure{background:#688373}
+.tag.c-IA{background:#a8b985}
+.tag.c-Marches{background:var(--amber)}
 .tag.c-IA{background:#c3ff5e}
-.tag.c-Crypto{background:var(--amber)}
-.tag.c-Matos{background:#5ec8ff}
+.tag.c-Infrastructure{background:#5ec8ff}
 .you{color:var(--you);font-weight:600}
 .item.mine{border-left-color:var(--you)}
 .panel.you{border-color:#2e2560;background:linear-gradient(180deg,#0e0a1f,var(--panel))}
@@ -170,8 +174,8 @@ footer{padding:14px clamp(16px,3vw,36px) 30px;color:var(--mut);font-size:12px;bo
 
 @media (max-width:1100px){.layout{grid-template-columns:minmax(0,1fr)}aside{position:static;grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr))}.ticker{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:640px){
-  .top{flex-wrap:wrap;gap:12px}.hal{width:44px;height:44px}.clock{display:none}.tools{width:100%}.tools>*{flex:1;min-width:0;padding:6px 4px;text-align:center}
-  .ticker{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.coin,.stat{min-width:0}.coin .px{font-size:28px}.coin svg{display:none}
+  .top{flex-wrap:wrap;gap:12px}.muthur-mark{width:44px;height:44px}.clock{display:none}.tools{width:100%}.tools>*{flex:1;min-width:0;padding:6px 4px;text-align:center}
+  .modules{grid-template-columns:repeat(2,minmax(0,1fr))}.ticker{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.coin,.stat{min-width:0}.coin .px{font-size:28px}.coin svg{display:none}
   .search{flex-basis:100%;min-width:0}
   .item{grid-template-columns:1fr auto}.when{grid-column:1/-1;display:flex;gap:8px;align-items:baseline}.when small{margin:0}
   .act{flex-direction:row}footer{display:none}

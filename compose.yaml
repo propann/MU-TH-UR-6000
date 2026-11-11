@@ -1,0 +1,53 @@
+services:
+  superia-web:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.superia
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      HOST: 127.0.0.1
+      PORT: "3210"
+      NO_AUTH: "1"
+      SUPERIA_HOME: /var/lib/superia
+      AZOTH_VAULT_PATH: ${AZOTH_VAULT_PATH:-}
+      AZOTH_INBOX_PATH: ${AZOTH_INBOX_PATH:-}
+      OLLAMA_BASE_URL: http://127.0.0.1:11434
+    volumes:
+      - ${SUPERIA_HOME_HOST_PATH:-./private/superia-home}:/var/lib/superia
+      - ${OBSIDIAN_VAULT_HOST_PATH:-./private/empty-vault}:/mnt/vault:ro
+      - ${OBSIDIAN_INBOX_HOST_PATH:-./private/empty-inbox}:/mnt/inbox
+    command: ["node", "dist/index.js", "web", "--host", "127.0.0.1", "--port", "3210", "--no-auth"]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3210/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 25s
+
+  muthur:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.muthur
+    network_mode: host
+    restart: unless-stopped
+    depends_on:
+      superia-web:
+        condition: service_started
+    environment:
+      MUTHUR_PASSWORD: ${MUTHUR_PASSWORD:?Run scripts/deployer.sh to create local credentials}
+      MUTHUR_DATA_DIR: /var/lib/muthur
+      SUPERIA_PROXY_URL: http://127.0.0.1:3210
+      SUPERIA_WEB_URL: http://127.0.0.1:3210
+      QUANT_PROXY_URL: http://127.0.0.1:${CONSOLE_PORT:-3000}
+      QUANT_CORE_URL: http://127.0.0.1:${CONSOLE_PORT:-3000}/quant
+    volumes:
+      - ${MUTHUR_DATA_HOST_PATH:-./private/muthur-data}:/var/lib/muthur
+    command: ["python3", "muthur.py", "--host", "0.0.0.0", "--port", "8765", "--no-browser"]
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8765/api/cockpit/status', timeout=3)"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+

@@ -1,0 +1,6 @@
+[submodule "components/super-ia"]
+	path = components/super-ia
+	url = https://github.com/propann/super-ia.git
+[submodule "components/freqtrade"]
+	path = components/freqtrade
+	url = https://github.com/propann/freqtrade.git

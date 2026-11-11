@@ -1,0 +1,16 @@
+FROM node:22-bookworm-slim AS build
+WORKDIR /build
+COPY components/super-ia/package.json ./package.json
+RUN npm install --no-audit --no-fund
+COPY components/super-ia/ ./
+RUN npm run build
+
+FROM node:22-bookworm-slim
+WORKDIR /app
+ENV NODE_ENV=production SUPERIA_HOME=/var/lib/superia
+COPY --from=build --chown=node:node /build/package.json ./package.json
+COPY --from=build --chown=node:node /build/dist ./dist
+RUN mkdir -p /var/lib/superia && chown -R node:node /var/lib/superia
+USER node
+EXPOSE 3210
+CMD ["node", "dist/index.js", "web", "--host", "127.0.0.1", "--port", "3210", "--no-auth"]
