@@ -87,8 +87,25 @@ fi
 docker compose --env-file .env -f compose.yaml build
 docker compose --env-file .env -f components/freqtrade/docker-compose.coolify.yml build trading-terminal
 
-if [[ -f "$HOME/.config/systemd/user/veille-azoth.service" ]]; then
-  systemctl --user disable --now veille-azoth.service >/dev/null 2>&1 || true
+if command -v systemctl >/dev/null 2>&1 && systemctl --user show-environment >/dev/null 2>&1; then
+  for unit in veille-azoth.service superia-web.service azoth-quant.service azoth.target; do
+    if systemctl --user list-unit-files "$unit" --no-legend | grep -q "^${unit}[[:space:]]"; then
+      systemctl --user disable --now "$unit" >/dev/null
+    fi
+  done
+fi
+
+# Le compose historique démarrait aussi le moteur. `down` conserve tous les
+# volumes ; le nouveau déploiement ne relancera que l'interface Quant.
+legacy_quant_root="$HOME/serveur-local/sources/freqtrade"
+if [[ -r "$legacy_quant_root/.env" && -f "$legacy_quant_root/docker-compose.coolify.yml" ]]; then
+  docker compose --env-file "$legacy_quant_root/.env" \
+    -f "$legacy_quant_root/docker-compose.coolify.yml" down
+fi
+
+if command -v systemctl >/dev/null 2>&1; then
+  systemctl --user start ollama.service || printf 'Ollama indisponible : le chat local sera hors ligne.\n' >&2
+  systemctl --user start azoth-vault.service || printf 'Montage Obsidian indisponible : le cockpit démarrera sans mémoire documentaire.\n' >&2
 fi
 
 docker compose --env-file .env -f components/freqtrade/docker-compose.coolify.yml up -d trading-terminal
