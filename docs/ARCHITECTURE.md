@@ -1,5 +1,11 @@
 # Architecture cible
 
+Le produit est **MU-TH-UR 6000**, surnommé **Mother**. Le [rack logiciel](RACK-LOGICIEL.md)
+décrit les capacités, les adaptateurs présents et les intégrations à construire;
+son manifeste YAML n'est pas encore chargé par un routeur runtime. MU-TH-UR est
+le dépôt de référence; certains services restent externes et leur intégration
+ou migration est suivie dans le [plan de mise en route](PLAN-MISE-EN-ROUTE.md).
+
 ## Interface
 
 Une seule entrée authentifiée dessert six espaces :
@@ -28,10 +34,10 @@ données publiques dans la configuration dry-run initiale ; aucune dépendance
 fonctionnelle du cockpit ne doit supposer que Binance sera l'exchange final.
 Le futur connecteur d'exécution sera choisi et validé séparément.
 
-Obsidian n'est pas utilisé comme tableau de bord d'exploitation. Il reste le
-coffre durable et l'éditeur des connaissances. Le bureau Azoth affiche ses notes,
-crée des brouillons dans `Inbox/`, puis ouvre Obsidian lorsqu'une édition riche
-est demandée.
+Obsidian reste le coffre durable et l'éditeur des connaissances. L'utilisateur
+peut modifier ses notes normalement. L'IA recherche du contexte sur demande et
+ne crée que de nouveaux brouillons dans `Inbox/`, sans écraser les notes
+existantes.
 
 ## Services
 
@@ -63,9 +69,14 @@ bureau Azoth authentifié
 
 - secrets hors Git, Drive et Obsidian ;
 - aucun port Freqtrade publié ;
-- le modèle débridé ne reçoit ni outil système, ni clé, ni action de trading ;
+- les modèles locaux partagent le même catalogue d'outils;
+- ces outils restent confinés au répertoire de travail du service Super IA et
+  leur écriture peut remplacer un fichier; le durcissement est requis avant
+  usage général, voir le [rack](RACK-LOGICIEL.md);
+- aucun modèle ne reçoit de secret ni de capacité d'exécution du trading;
 - activation de stratégie bornée au dry-run pendant la construction ;
 - aucune session ne peut quitter le dry-run par une action du cockpit ou de l'IA ;
 - les sessions de bot restent isolées et identifiées explicitement ;
-- le coffre Drive est d'abord monté en lecture seule ;
+- le coffre Drive est éditable par l'utilisateur; les brouillons IA sont créés
+  exclusivement dans `Inbox/` ;
 - toute réponse issue du cerveau doit citer le chemin ou la page source.
