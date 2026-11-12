@@ -1,26 +1,28 @@
-# AZOTH ULTIME
+# MU-TH-UR 6000 — Mother
 
 > Cockpit personnel souverain pour l'IA locale, la connaissance, la veille et
 > le trading simulé.
 
 ```text
 ╔══════════════════════════════════════════════════════════════╗
-║  MU-TH-UR // UNE PORTE · DES SERVICES ISOLÉS · ZÉRO SECRET  ║
+║  MOTHER // UNE PORTE · DES SERVICES ISOLÉS · ZÉRO SECRET    ║
 ╚══════════════════════════════════════════════════════════════╝
 ```
 
-Azoth Ultime rassemble les interfaces et procédures d'exploitation d'un poste
-personnel. Le cockpit est la porte d'entrée, Obsidian est la mémoire durable et
-les composants restent des dépôts Git indépendants, verrouillés par commit.
+MU-TH-UR 6000, surnommé Mother comme l'ordinateur du Nostromo dans *Alien*,
+rassemble les interfaces et procédures d'exploitation du poste. Le cockpit est
+la porte d'entrée et Obsidian la mémoire durable. MU-TH-UR est le dépôt de
+référence; des composants restent actuellement dans leurs propres dépôts et
+leur intégration ou migration est suivie dans le plan de mise en route.
 
 ## Vue d'ensemble
 
 | Module | Rôle | État |
 |---|---|---|
-| MU-TH-UR 6000 | cockpit et veille technologique | opérationnel |
-| Super IA | chat Ollama/Mistral et citations Obsidian | opérationnel |
-| Quant Core | Freqtrade et console de trading | `dry-run` uniquement |
-| SuperIA-Vault | source documentaire officielle | lecture seule + `Inbox/` |
+| MU-TH-UR 6000 | cockpit et veille technologique | installé, recette à terminer |
+| Super IA | chat Ollama/Mistral et contexte Obsidian | intégré, durcissement à terminer |
+| Quant Core | Freqtrade et console de trading | `dry-run`, recette séparée |
+| SuperIA-Vault | source documentaire officielle | éditable par l'utilisateur; brouillons IA dans `Inbox/` |
 
 ```text
 Navigateur LAN
@@ -28,7 +30,7 @@ Navigateur LAN
       ▼
 MU-TH-UR 6000 ── authentification unique
       ├── /ia/ ────── Super IA ────── Ollama local
-      │                   └────────── Obsidian en lecture
+      │                   └────────── Obsidian à la demande
       ├── /quant/ ── Quant Core ───── Freqtrade dry-run
       └── / ───────── Veille ───────── flux RSS
 ```
@@ -53,18 +55,21 @@ trading personnelle.
 - seul le cockpit authentifié est destiné au LAN ;
 - Freqtrade reste en `dry-run`, sans clé d'exchange ;
 - l'IA n'active pas le trading et ne place aucun ordre ;
-- le coffre complet est lu, seul `Inbox/` accepte de nouveaux brouillons ;
-- le modèle expérimental Abliterated n'obtient ni outil, ni coffre, ni secret.
+- les modèles locaux partagent le même catalogue d'outils, dont le périmètre doit être durci ;
+- l'utilisateur édite librement Obsidian; l'IA ne crée que des brouillons dans `Inbox/` ;
+- le contexte Obsidian vers Mistral doit devenir un opt-in réel; l'interface
+  actuelle coche l'option par défaut, correction requise avant mise en route.
 
 ## Composants verrouillés
 
-Les sources ne sont pas copiées dans ce dépôt. Les références publiées sont
-tenues dans [`config/services.yaml`](config/services.yaml) et expliquées dans
-[`services/README.md`](services/README.md).
+MU-TH-UR est le dépôt de référence du projet. Certains composants restent
+actuellement dans leurs propres dépôts; leur intégration ou migration est
+suivie dans le [plan de mise en route](docs/PLAN-MISE-EN-ROUTE.md). Les
+références connues figurent dans [`config/services.yaml`](config/services.yaml).
 
 | Composant | Dépôt | Branche de livraison |
 |---|---|---|
-| MU-TH-UR 6000 / Azoth Ultime | `propann/MU-TH-UR-6000` | `main` |
+| MU-TH-UR 6000 / Mother | `propann/MU-TH-UR-6000` | `main` |
 | Super IA | `propann/super-ia` | `fix/lan-token-login` |
 | Quant Core | `propann/freqtrade` | `rebuild/engine-optional` |
 
@@ -82,6 +87,8 @@ Ne jamais démarrer tous les laboratoires pour un simple contrôle documentaire.
 ## Documentation
 
 - [Architecture](docs/ARCHITECTURE.md)
+- [Rack logiciel Mother](docs/RACK-LOGICIEL.md)
+- [Plan de mise en route](docs/PLAN-MISE-EN-ROUTE.md)
 - [Trame graphique MU-TH-UR](docs/DESIGN-SYSTEM.md)
 - [Audit de la Veille et étude Mistral](docs/AUDIT-VEILLE-MISTRAL.md)
 - [Assistant Mistral transversal](docs/ASSISTANT-OVERLAY.md)
