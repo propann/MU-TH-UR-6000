@@ -86,6 +86,12 @@ bash scripts/tester-ia-locale.sh
 Les tâches de préparation sont idempotentes et documentées dans `scripts/`.
 Ne jamais démarrer tous les laboratoires pour un simple contrôle documentaire.
 
+Tests unitaires du registre RACK (bibliothèque standard Python) :
+
+```bash
+python3 -m unittest discover -s tests -v
+```
+
 ## Documentation
 
 - [Architecture](docs/ARCHITECTURE.md)
