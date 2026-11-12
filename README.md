@@ -53,6 +53,8 @@ trading personnelle.
 - aucun `.env`, jeton, mot de passe ou identifiant Drive dans Git ;
 - Ollama, Super IA et Quant Core liés à `127.0.0.1` ;
 - seul le cockpit authentifié est destiné au LAN ;
+- l'installation Pi utilise Basic Auth sur HTTP sans TLS : rester sur un réseau
+  de confiance ou passer par un VPN; ne pas publier le port sur Internet ;
 - Freqtrade reste en `dry-run`, sans clé d'exchange ;
 - l'IA n'active pas le trading et ne place aucun ordre ;
 - les modèles locaux partagent le même catalogue d'outils, dont le périmètre doit être durci ;
