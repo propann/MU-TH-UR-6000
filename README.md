@@ -32,16 +32,6 @@ Ambiance : terminal phosphore façon *Matrix* / *MU-TH-UR 6000* (Alien), avec l'
 
 **Prérequis :** Python 3.9 ou plus récent (installé sur ton PC : 3.12). Rien d'autre à installer : l'outil n'utilise que la bibliothèque standard de Python.
 
-### Récupérer le projet depuis Git
-
-```
-git clone <adresse-du-dépôt> veille-azoth
-cd veille-azoth
-Installer-Raccourcis.bat
-```
-
-Le dossier `data/` (favoris, articles lus, cache, journal) n'est **pas** versionné : il se crée au premier lancement et reste propre à chaque machine.
-
 ### En un clic (usage normal)
 
 1. **Une seule fois :** double-clique sur **`Installer-Raccourcis.bat`**. Il crée l'icône **Veille Azoth** (l'œil de HAL) sur le Bureau et dans le menu Démarrer.
@@ -323,9 +313,3 @@ Réglages en haut de `veille.py` : `FEED_TTL`, `MAX_PER_SOURCE`, `MAX_AGE_DAYS`,
 | Cours crypto « indisponible » | L'API gratuite de CoinGecko limite les appels : attends quelques minutes. |
 | La page ne change pas après une modification du code | `Ctrl + F5` pour recharger sans cache. |
 | Sur le Pi, la page ne répond pas | `systemctl status veille-azoth`, puis `journalctl -u veille-azoth -n 50`. Vérifie le pare-feu (`sudo ufw status`). |
-
----
-
-## Licence
-
-Code sous licence **MIT** (voir `LICENSE`). Les articles affichés appartiennent à leurs auteurs et éditeurs : l'outil n'en montre que le titre, un court résumé et le lien vers la source.

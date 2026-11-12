@@ -59,6 +59,33 @@ async function api(path, body) {
   return data;
 }
 
+/** Met à jour les quatre briques visibles du cockpit. */
+async function loadCockpit() {
+  try {
+    const status = await api('/api/cockpit/status');
+    Object.entries(status).forEach(([name, value]) => {
+      const el = document.querySelector(`[data-service="${name}"]`);
+      if (!el) return;
+      el.className = value.online ? 'online' : 'offline';
+      const label = value.online ? 'EN LIGNE' : 'EN ATTENTE';
+      el.textContent = `${label}${value.mode ? ` · ${value.mode.toUpperCase()}` : ''}`;
+      el.title = value.detail || '';
+    });
+    const trading = $('#tradingModule');
+    trading.href = status.trading?.online ? '/quant/' : '#';
+    trading.target = status.trading?.online ? '_blank' : '';
+    trading.rel = status.trading?.online ? 'noopener noreferrer' : '';
+    const ai = $('#aiModule');
+    ai.href = status.ai?.workspace_online ? '/ia/' : '#';
+    ai.target = status.ai?.workspace_online ? '_blank' : '';
+    ai.rel = status.ai?.workspace_online ? 'noopener noreferrer' : '';
+  } catch {
+    document.querySelectorAll('[data-service]').forEach(el => {
+      el.className = 'offline'; el.textContent = 'INDISPONIBLE';
+    });
+  }
+}
+
 /** « il y a 3 h » compact, pour la colonne de gauche. */
 function ago(ts) {
   if (!ts) return ['—', ''];
@@ -397,6 +424,15 @@ $('#more').onclick = () => { S.shown += 60; renderFeed(); };
 $('#markAll').onclick = () => { S.view.forEach(i => S.read.add(i.id)); saveState(); renderAll(); };
 $('#hal').onclick = () => loadFeeds(true);
 $('#btnSynth').onclick = exportSynthese;
+$('#modules').addEventListener('click', e => {
+  const module = e.target.closest('[data-module]');
+  if (!module) return;
+  if (module.dataset.module === 'trading' && module.getAttribute('href') !== '#') return;
+  if (module.dataset.module === 'ai' && module.getAttribute('href') !== '#') return;
+  e.preventDefault();
+  const names = { trading: 'Quant Core', ai: 'IA locale', vault: 'Cœur Obsidian' };
+  alert(`${names[module.dataset.module]} : l’état est déjà supervisé. L’interface native sera activée à l’étape suivante.`);
+});
 
 /** Arrête le serveur local (la veille lancée par l'icône tourne sans fenêtre). */
 $('#btnOff').onclick = async () => {
@@ -511,6 +547,7 @@ function boot() {
 /* ---------- 7) DÉMARRAGE -------------------------------------------- */
 (async function start() {
   boot();
+  loadCockpit();
   renderFeed();
   try {
     const cfg = await api('/api/config');
@@ -527,5 +564,6 @@ function boot() {
     renderSources(); renderWatch();
   } catch { /* loadFeeds affichera l'erreur */ }
   await loadFeeds();
+  setInterval(loadCockpit, 30 * 1000);
   setInterval(() => loadFeeds(), 15 * 60 * 1000);   // rafraîchissement auto toutes les 15 min
 })();

@@ -40,6 +40,7 @@ import hmac
 import os
 import hashlib
 import html
+import http.client
 import json
 import re
 import sys
@@ -47,6 +48,7 @@ import threading
 import time
 import urllib.parse
 import urllib.request
+import urllib.error
 import webbrowser
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
@@ -69,6 +71,8 @@ UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) VeilleAzoth/3.0"
 COINS = "bitcoin,monero,dogecoin"   # identifiants CoinGecko, separes par des virgules
 SLOW_HOSTS = {"www.reddit.com": 3.0}  # site -> pause (s) entre deux flux du meme site
 PASSWORD = ""                         # rempli par --password ou VEILLE_PASSWORD
+QUANT_PROXY_URL = os.environ.get("QUANT_PROXY_URL", "http://127.0.0.1:3000").rstrip("/")
+SUPERIA_PROXY_URL = os.environ.get("SUPERIA_PROXY_URL", "http://127.0.0.1:3210").rstrip("/")
 
 lock = threading.RLock()
 DATA.mkdir(exist_ok=True)
@@ -112,6 +116,36 @@ sources = load_json(SOURCES_FILE, [])
 state = {**default_state(), **load_json(STATE_FILE, {})}
 cache = load_json(CACHE_FILE, {})        # id_source -> {fetched, ok, error, items}
 crypto_cache = {"t": 0, "data": None}
+
+
+def probe(url, expected_key=None):
+    """Sonde un service local connu sans transmettre de secret."""
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": UA})
+        with urllib.request.urlopen(req, timeout=1.5) as response:
+            payload = json.loads(response.read(64_000) or b"{}")
+        return {"online": response.status < 400,
+                "detail": payload.get(expected_key) if expected_key else None}
+    except (OSError, ValueError, urllib.error.URLError):
+        return {"online": False, "detail": None}
+
+
+def cockpit_status():
+    """État minimal des briques du cockpit, toutes sondées côté serveur."""
+    ollama = probe("http://127.0.0.1:11434/api/version", "version")
+    superia_url = os.environ.get("SUPERIA_WEB_URL", "http://127.0.0.1:3210").rstrip("/")
+    superia = probe(f"{superia_url}/healthz")
+    trading_url = os.environ.get("QUANT_CORE_URL", "http://127.0.0.1:3000").rstrip("/")
+    trading = probe(f"{trading_url}/api/health")
+    vault_value = os.environ.get("AZOTH_VAULT_PATH", "").strip()
+    vault = Path(vault_value).expanduser() if vault_value else None
+    return {
+        "watch": {"online": True, "detail": f"{len(sources)} sources"},
+        "trading": {**trading, "mode": "dry-run"},
+        "ai": {**ollama, "workspace_online": superia["online"]},
+        "vault": {"online": bool(vault and vault.is_dir()),
+                  "detail": str(vault) if vault else "miroir local non monté"},
+    }
 
 
 def sid(url):
@@ -415,8 +449,10 @@ class Handler(BaseHTTPRequestHandler):
                   extra={"WWW-Authenticate": 'Basic realm="Veille Azoth", charset="UTF-8"'})
 
     def log_message(self, fmt, *args):  # console plus calme
-        if "/api/" in (args[0] if args else "") and " 200 " not in fmt % args:
-            sys.stderr.write("%s\n" % (fmt % args))
+        message = fmt % args
+        request_line = str(args[0]) if args else ""
+        if "/api/" in request_line and " 200 " not in message:
+            sys.stderr.write("%s\n" % message)
 
     def send(self, code, body, ctype="application/json; charset=utf-8", extra=None):
         if not isinstance(body, (bytes, str)):
@@ -443,10 +479,121 @@ class Handler(BaseHTTPRequestHandler):
         origin = self.headers.get("Origin")
         return origin is None or origin == f"http://{self.headers.get('Host')}"
 
+    def proxy_quant(self):
+        """Passe Quant Core derrière l'authentification unique du cockpit."""
+        target = urllib.parse.urlparse(QUANT_PROXY_URL)
+        length = int(self.headers.get("Content-Length") or 0)
+        if length > 2_000_000:
+            return self.send(413, {"error": "requête trop grosse"})
+        body = self.rfile.read(length) if length else None
+        forwarded = {}
+        for key, value in self.headers.items():
+            if key.lower() not in {"authorization", "connection", "host", "content-length", "transfer-encoding"}:
+                forwarded[key] = value
+        forwarded["Host"] = target.netloc
+        forwarded["X-Forwarded-Host"] = self.headers.get("Host", "")
+        forwarded["X-Forwarded-Proto"] = "http"
+        connection = http.client.HTTPConnection(target.hostname, target.port or 80, timeout=15)
+        try:
+            connection.request(self.command, self.path, body=body, headers=forwarded)
+            upstream = connection.getresponse()
+            payload = upstream.read()
+            self.send_response(upstream.status)
+            for key, value in upstream.getheaders():
+                if key.lower() not in {"connection", "content-length", "transfer-encoding"}:
+                    self.send_header(key, value)
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            if self.command != "HEAD":
+                self.wfile.write(payload)
+        except OSError:
+            self.send(502, {"error": "Quant Core indisponible"})
+        finally:
+            connection.close()
+
+    def proxy_superia(self):
+        """Expose Super IA sous /ia/ après l'unique contrôle d'accès du cockpit."""
+        target = urllib.parse.urlparse(SUPERIA_PROXY_URL)
+        length = int(self.headers.get("Content-Length") or 0)
+        if length > 2_000_000:
+            return self.send(413, {"error": "requête trop grosse"})
+        body = self.rfile.read(length) if length else None
+        upstream_path = self.path[3:] or "/"
+        forwarded = {}
+        for key, value in self.headers.items():
+            if key.lower() not in {"authorization", "connection", "host", "content-length", "transfer-encoding"}:
+                forwarded[key] = value
+        forwarded["Host"] = target.netloc
+        # Les modèles locaux peuvent prendre plus d'une minute sur le premier
+        # chargement. Le serveur Super IA borne lui-même les appels à 120 s.
+        connection = http.client.HTTPConnection(target.hostname, target.port or 80, timeout=130)
+        try:
+            connection.request(self.command, upstream_path, body=body, headers=forwarded)
+            upstream = connection.getresponse()
+            content_type = upstream.getheader("Content-Type", "")
+            if "text/event-stream" in content_type:
+                self.send_response(upstream.status)
+                for key, value in upstream.getheaders():
+                    if key.lower() not in {"connection", "content-length", "transfer-encoding", "content-encoding"}:
+                        self.send_header(key, value)
+                self.send_header("Cache-Control", "no-cache, no-transform")
+                self.send_header("X-Accel-Buffering", "no")
+                self.send_header("Connection", "close")
+                self.end_headers()
+                self.close_connection = True
+                if self.command != "HEAD":
+                    while True:
+                        chunk = upstream.read1(4096)
+                        if not chunk:
+                            break
+                        self.wfile.write(chunk)
+                        self.wfile.flush()
+                return
+            payload = upstream.read()
+            if "text/html" in content_type:
+                page = payload.decode("utf-8")
+                page = page.replace("'/api", "'/ia/api").replace("\"/api", "\"/ia/api")
+                page = page.replace('action="/logout"', 'action="/ia/logout"')
+                page = page.replace('action="/session"', 'action="/ia/session"')
+                page = page.replace("'/login'", "'/ia/login'")
+                payload = page.encode("utf-8")
+            self.send_response(upstream.status)
+            for key, value in upstream.getheaders():
+                lowered = key.lower()
+                if lowered in {"connection", "content-length", "transfer-encoding"}:
+                    continue
+                if lowered == "location" and value.startswith("/"):
+                    value = "/ia" + value
+                self.send_header(key, value)
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            if self.command != "HEAD":
+                self.wfile.write(payload)
+        except OSError:
+            self.send(502, {"error": "Super IA indisponible"})
+        finally:
+            connection.close()
+
     def do_GET(self):
         if not self.authorized():
             return self.deny()
         u = urllib.parse.urlparse(self.path)
+        if u.path == "/quant":
+            self.send_response(308)
+            self.send_header("Location", "/quant/")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
+        if u.path.startswith("/quant/"):
+            return self.proxy_quant()
+        if u.path == "/ia":
+            self.send_response(308)
+            self.send_header("Location", "/ia/")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
+        if u.path.startswith("/ia/"):
+            return self.proxy_superia()
         q = urllib.parse.parse_qs(u.query)
         if u.path == "/api/feeds":
             return self.send(200, refresh(force=q.get("force") == ["1"]))
@@ -455,6 +602,8 @@ class Handler(BaseHTTPRequestHandler):
         if u.path == "/api/config":
             with lock:
                 return self.send(200, {"sources": sources, "state": state})
+        if u.path == "/api/cockpit/status":
+            return self.send(200, cockpit_status())
         if u.path == "/api/opml":
             return self.send(200, opml(), "text/x-opml; charset=utf-8",
                              {"Content-Disposition": 'attachment; filename="veille-tssr.opml"'})
@@ -464,9 +613,39 @@ class Handler(BaseHTTPRequestHandler):
             return self.send(404, {"error": "introuvable"})
         return self.send(200, f.read_bytes(), MIME.get(f.suffix, "application/octet-stream"))
 
+    def do_HEAD(self):
+        """Répond aux contrôles de disponibilité sans envoyer de contenu."""
+        if not self.authorized():
+            self.send_response(401)
+            self.send_header("WWW-Authenticate", 'Basic realm="Veille Azoth", charset="UTF-8"')
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
+        u = urllib.parse.urlparse(self.path)
+        if u.path.startswith("/quant"):
+            return self.proxy_quant()
+        if u.path.startswith("/ia"):
+            return self.proxy_superia()
+        path = "index.html" if u.path in ("", "/") else u.path.lstrip("/")
+        f = (WEB / path).resolve()
+        if WEB not in f.parents or not f.is_file():
+            self.send_response(404)
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
+        self.send_response(200)
+        self.send_header("Content-Type", MIME.get(f.suffix, "application/octet-stream"))
+        self.send_header("Content-Length", str(f.stat().st_size))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+
     def do_POST(self):
         if not self.authorized():
             return self.deny()
+        if urllib.parse.urlparse(self.path).path.startswith("/quant/"):
+            return self.proxy_quant()
+        if urllib.parse.urlparse(self.path).path.startswith("/ia/"):
+            return self.proxy_superia()
         if not self.same_origin():
             return self.send(403, {"error": "origine refusee"})
         try:
@@ -510,6 +689,24 @@ class Handler(BaseHTTPRequestHandler):
                         s["on"] = not s.get("on", True)
                 save_json(SOURCES_FILE, sources)
                 return self.send(200, {"ok": True})
+        return self.send(404, {"error": "route inconnue"})
+
+    def do_PUT(self):
+        if not self.authorized():
+            return self.deny()
+        if urllib.parse.urlparse(self.path).path.startswith("/quant/"):
+            return self.proxy_quant()
+        if urllib.parse.urlparse(self.path).path.startswith("/ia/"):
+            return self.proxy_superia()
+        return self.send(404, {"error": "route inconnue"})
+
+    def do_DELETE(self):
+        if not self.authorized():
+            return self.deny()
+        if urllib.parse.urlparse(self.path).path.startswith("/quant/"):
+            return self.proxy_quant()
+        if urllib.parse.urlparse(self.path).path.startswith("/ia/"):
+            return self.proxy_superia()
         return self.send(404, {"error": "route inconnue"})
 
 
