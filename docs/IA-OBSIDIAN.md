@@ -38,7 +38,7 @@ recherche documentaire.
 Drive `SuperIA-Vault` est la source officielle. Le remote rclone attendu est
 `gdrive:`. Le script `~/serveur-local/connecter-cerveau.sh` crée deux montages :
 
-- `/home/azoth/GoogleDrive/SuperIA-Vault` : coffre complet en lecture seule ;
+- `/home/azoth/GoogleDrive/SuperIA-Vault` : coffre complet éditable dans Obsidian ;
 - `/home/azoth/GoogleDrive/SuperIA-Inbox` : montage indépendant et écrivable,
   ciblant le dossier Drive `Inbox` du coffre officiel.
 
@@ -97,8 +97,7 @@ fusermount3 -u /home/azoth/GoogleDrive/SuperIA-Inbox
 systemctl --user restart superia-web.service
 ```
 
-Le coffre principal reste alors consultable en lecture seule. Pour arrêter tous
-les montages :
+Le coffre principal reste éditable dans Obsidian. Pour arrêter tous les montages :
 
 ```bash
 systemctl --user stop azoth-vault.service
