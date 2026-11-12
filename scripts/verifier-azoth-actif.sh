@@ -19,7 +19,15 @@ check_url() {
 }
 
 check_url "Ollama" "http://127.0.0.1:11434/api/version"
-veille_password="$(sed -n 's/^VEILLE_PASSWORD=//p' /home/azoth/.config/azoth/veille-azoth.env)"
+password_file="${VEILLE_PASSWORD_FILE:-$HOME/.config/azoth/veille-azoth.env}"
+veille_password="${VEILLE_PASSWORD:-}"
+if [ -z "$veille_password" ] && [ -r "$password_file" ]; then
+  veille_password="$(sed -n 's/^VEILLE_PASSWORD=//p' "$password_file")"
+elif [ -z "$veille_password" ] && [ -r /etc/veille-azoth.env ]; then
+  veille_password="$(sed -n 's/^VEILLE_PASSWORD=//p' /etc/veille-azoth.env)"
+elif [ -z "$veille_password" ] && command -v sudo >/dev/null 2>&1 && sudo -n test -r /etc/veille-azoth.env 2>/dev/null; then
+  veille_password="$(sudo -n sed -n 's/^VEILLE_PASSWORD=//p' /etc/veille-azoth.env)"
+fi
 cockpit_url="${AZOTH_COCKPIT_URL:-http://127.0.0.1:8765}"
 quant_url="${QUANT_CORE_URL:-http://127.0.0.1:3000/quant}"
 check_url "Cockpit" "${cockpit_url}/" "azoth:${veille_password}"
