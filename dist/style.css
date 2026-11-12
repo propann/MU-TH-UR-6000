@@ -75,8 +75,12 @@ h1 em{color:var(--red);font-style:normal;text-shadow:0 0 10px var(--red)}
 .rack-card p{color:var(--gd);font-size:12px;margin:8px 0}
 .rack-runtime{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:7px;color:var(--mut);font-size:10px}
 .rack-runtime b{letter-spacing:.08em;color:var(--amber)}.rack-runtime.online b{color:var(--g)}.rack-runtime.offline b{color:var(--red)}
-.rack-capabilities{display:flex;flex-wrap:wrap;gap:5px}
-.rack-capabilities code{padding:2px 5px;border:1px solid var(--line2);color:var(--g);font-size:10px;overflow-wrap:anywhere}
+.rack-capabilities{display:grid;gap:6px;margin-top:8px}
+.rack-capability{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px 8px;align-items:center;border:1px solid var(--line);padding:7px}
+.rack-capability code{color:var(--g);font-size:10px;overflow-wrap:anywhere}
+.rack-capability>small{font-size:8px;letter-spacing:.05em;color:var(--mut);white-space:nowrap}.rack-capability>small.callable{color:var(--g)}
+.rack-call-form{grid-column:1/-1;display:flex;gap:6px}.rack-call-form input{flex:1;min-width:0;padding:5px;font-size:11px}.rack-call-form button{font-size:10px;padding:5px 8px}
+.rack-result{grid-column:1/-1;max-height:170px;overflow:auto;margin:0;padding:7px;background:#020503;border:1px solid var(--line);color:var(--gd);font-size:10px;white-space:pre-wrap;overflow-wrap:anywhere}
 .rack-none,.rack-card li,.rack-card>small,.rack-message{color:var(--mut);font-size:11px}
 .rack-card ul{padding-left:18px;margin:9px 0}.rack-card li+li{margin-top:3px}.rack-card>small{display:block;margin-top:9px;opacity:.75}
 .rack-message{grid-column:1/-1;padding:12px}.rack-message.error{color:var(--red)}
