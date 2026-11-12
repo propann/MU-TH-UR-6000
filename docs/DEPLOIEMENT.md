@@ -90,7 +90,7 @@ montage restreint d'`Inbox`, les vérifications et le retour arrière.
 
 Le dossier Drive `SuperIA-Vault` reste la source officielle. Le chemin local
 prévu est `/home/azoth/GoogleDrive/SuperIA-Vault`, monté en lecture-écriture avec
-`serveur-local/connecter-cerveau.sh` afin qu'Obsidian puisse créer, modifier,
+`scripts/connecter-cerveau.sh` afin qu'Obsidian puisse créer, modifier,
 renommer et supprimer les notes de l'utilisateur.
 
 Les identifiants des deux dossiers sont conservés hors Git dans
