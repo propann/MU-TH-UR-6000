@@ -22,7 +22,7 @@ services:
   trading:
     repository: https://github.com/propann/freqtrade.git
     branch: rebuild/engine-optional
-    pinned_commit: 614077163798fd5064882e1834850760831ba72a
+    pinned_commit: 0adce65d64ad32c77982dd92b845437c9be70873
     initial_mode: dry-run
     exchange_choice: pending
     provisional_public_market_data: binance
@@ -32,7 +32,7 @@ services:
   agents:
     repository: https://github.com/propann/super-ia.git
     branch: fix/lan-token-login
-    pinned_commit: e33bd4b12f272888cadb2665c516f17ca7672f15
+    pinned_commit: 179085fd2fde7a417d72f05796f36c3f9d0a93ae
   archived_automation_reference:
     repository: https://github.com/propann/Az-N8N.git
     deployment: disabled
