@@ -12,6 +12,10 @@ la session, contexte de la fenêtre et mode éditeur. Le mode éditeur livré da
 cette étape produit un plan de modification. Il ne prétend pas avoir écrit un
 fichier et n'expose aucun shell.
 
+Dans la zone de saisie, `Entrée` envoie le message et `Maj + Entrée` insère une
+nouvelle ligne. Une composition en cours avec un clavier virtuel ou un IME n'est
+jamais envoyée prématurément.
+
 ## Pourquoi l'écriture directe est bloquée
 
 Une page accessible sur le LAN qui lancerait `vibe --trust` dans `/home/azoth`
