@@ -2,9 +2,14 @@
 
 Dernière mise à jour : 12 novembre 2026.
 
-## Opérationnel
+## État constaté
 
-- socle de développement validé sans point en attente ;
+Les observations ci-dessous viennent des commandes opérateur du 12 novembre
+2026. Elles ne remplacent pas une vérification en direct : la session actuelle
+ne peut pas interroger le bus systemd de l'hôte.
+
+- socle de développement présent; plusieurs éléments de mise en service restent
+  ouverts, voir [le plan de mise en route](PLAN-MISE-EN-ROUTE.md) ;
 - Ollama `0.40.16` actif sur `127.0.0.1:11434` avec `qwen3:8b` ;
 - Veille Azoth restaurée depuis Drive avec ses sources et son état utilisateur ;
 - cockpit disponible sur `http://<adresse-lan>:8765` avec authentification ;
@@ -72,10 +77,11 @@ Les deux modèles ont été téléchargés et vérifiés par Ollama. Le modèle 
 est le choix par défaut. Le candidat Qwen 3.5 9B reste une évolution future et
 n'est pas présenté comme installé.
 
-Un seul grand modèle peut être chargé à la fois. Le laboratoire débridé ne
-reçoit aucun outil, secret, accès au coffre, accès système ou accès trading.
-Le modèle principal n'obtiendra un accès documentaire en lecture qu'après la
-validation des citations et du montage Drive.
+Un seul grand modèle peut être chargé à la fois. Les modèles locaux partagent
+le même catalogue d'outils workspace. Aujourd'hui, ce workspace est le
+répertoire du service Super IA, et `write_file` peut remplacer un fichier;
+durcissement requis avant usage comme éditeur Mother. Aucun outil de trading
+n'est offert au chat.
 
 ## Cœur documentaire
 
@@ -99,16 +105,21 @@ les notes existantes. Le coffre ne doit contenir aucun secret ni donnée
 d'exécution.
 
 La façade Super IA est volontairement réduite à un chat. Ollama peut rechercher
-les notes Markdown du miroir local et doit citer leur chemin. Le contexte
-Obsidian est désactivé dès que Mistral est sélectionné : aucune note n'est
-transmise à une API distante automatiquement. La clé Mistral se configure dans
-la fenêtre du chat et reste chiffrée dans le coffre privé de Super IA.
+les notes Markdown du montage local et doit citer leur chemin. La politique
+prévue est un contexte désactivé par défaut, activé explicitement message par
+message. Le code de l'interface inspecté initialise cependant la case comme
+cochée, et le worktree d'exécution diffère du HEAD Super IA sur le fournisseur
+autorisé à recevoir les extraits. Ne pas déclarer cette liaison conforme avant
+correction et vérification du build chargé. Avec Mistral, les extraits choisis
+quittent la machine. La clé reste chiffrée dans le coffre privé de Super IA.
 
 ## État des validations
 
 - Quant Core construit et validé en `dry-run` ;
 - moteur non publié et console reliée au cockpit sous `/quant/` ;
-- chat local Ollama fonctionnel, sans outil système ni droit trading ;
+- tests opérateur des deux modèles réussis avec raisonnement activé et outil
+  `list_files` ; le mode sans raisonnement a échoué pour Abliterated ;
+- portée des outils workspace à durcir avant usage étendu ;
 - température limitée côté serveur après l'incident du 12 novembre ;
 - coffre Obsidian éditable par l'utilisateur, recherche locale avec citations
   et écriture automatique de l'IA limitée à `Inbox/` ;
@@ -123,12 +134,17 @@ la fenêtre du chat et reste chiffrée dans le coffre privé de Super IA.
 
 ## Démarrage automatique
 
-Le target utilisateur `azoth.target` regroupe les services disponibles :
+Le point d'entrée complet retenu pour la mise en route est `azoth.target`, qui
+demande les services suivants :
 
 - `ollama.service` ;
+- `azoth-vault.service`, montage du coffre et d'Inbox ;
 - `veille-azoth.service` ;
 - `azoth-quant.service`, qui attend Docker puis applique le Compose dry-run.
 - `superia-web.service`, interface IA multi-fournisseurs sur le port `3210`.
+- `superia-local.target` existe aussi et a été activé; c'est une deuxième entrée
+  ciblée IA. Redémarrer un target ne garantit pas le redémarrage de ses unités
+  actives. Choisir et documenter un seul point d'entrée opérateur.
 
 ## Porte d'entrée unique
 
@@ -151,15 +167,18 @@ Super IA contient déjà le fournisseur Mistral officiel :
 - interface protégée par token et session HttpOnly.
 
 La clé doit être saisie depuis l'interface Super IA, jamais dans Git, une note,
-un prompt ou la conversation d'assistance. L'intégration peut être configurée
-sans lancer de requête payante. Tout appel distant futur exigera un budget et
-devra signaler que les données quittent la machine.
+un prompt ou la conversation d'assistance. Le choix Mistral est manuel, mais
+aucune confirmation séparée n'est demandée à chaque message. La jauge de jetons
+est stockée dans le navigateur et ne constitue pas un plafond imposé par le
+serveur ni un plafond en euros. La confirmation de dépense, la limite serveur
+et l'avertissement avant transfert de contexte distant restent à implémenter.
 
 Le maintien des services utilisateur au démarrage, avant toute connexion
-graphique, exige le lingering systemd pour le compte `azoth`. Le coffre Drive
-n'est pas inclus tant que rclone n'est pas autorisé et testé.
+graphique, exige le lingering systemd pour le compte `azoth`. Le montage rclone
+doit être vérifié après un redémarrage; la recette est dans le plan de mise en
+route.
 
-Commandes opérateur :
+Commandes opérateur (démarrage global) :
 
 ```bash
 systemctl --user start azoth.target
