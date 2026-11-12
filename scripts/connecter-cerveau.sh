@@ -6,6 +6,28 @@ set -euo pipefail
 remote="${1:-gdrive}"
 vault="/home/azoth/GoogleDrive/SuperIA-Vault"
 inbox="/home/azoth/GoogleDrive/SuperIA-Inbox"
+folders_file="${AZOTH_DRIVE_FOLDERS_FILE:-$HOME/.config/azoth/drive-folders.env}"
+vault_folder_id="${AZOTH_VAULT_FOLDER_ID:-}"
+inbox_folder_id="${AZOTH_INBOX_FOLDER_ID:-}"
+
+if [ -z "$vault_folder_id" ] || [ -z "$inbox_folder_id" ]; then
+  if [ ! -r "$folders_file" ]; then
+    printf 'Configuration Drive absente : %s\n' "$folders_file" >&2
+    printf 'Copier config/drive-folders.env.example hors du dépôt et y définir les deux identifiants.\n' >&2
+    exit 1
+  fi
+  while IFS='=' read -r key value; do
+    case "$key" in
+      AZOTH_VAULT_FOLDER_ID) vault_folder_id="$value" ;;
+      AZOTH_INBOX_FOLDER_ID) inbox_folder_id="$value" ;;
+    esac
+  done < "$folders_file"
+fi
+
+if [[ ! "$vault_folder_id" =~ ^[A-Za-z0-9_-]{20,}$ || ! "$inbox_folder_id" =~ ^[A-Za-z0-9_-]{20,}$ ]]; then
+  printf 'Identifiants de dossiers Drive absents ou invalides dans %s.\n' "$folders_file" >&2
+  exit 1
+fi
 
 if ! rclone listremotes | grep -Fxq -- "${remote}:"; then
   printf 'Configurer rclone avec le remote %s.\n' "$remote"
@@ -19,7 +41,7 @@ if ! mountpoint -q "$vault"; then
     exit 1
   fi
   rclone mount "${remote}:" "$vault" \
-    --drive-root-folder-id 1qOd-SetSWtOGONX7CujzBCBhB9U72Ygf \
+    --drive-root-folder-id "$vault_folder_id" \
     --vfs-cache-mode full \
     --vfs-cache-max-size 2G \
     --daemon
@@ -31,7 +53,7 @@ if ! mountpoint -q "$inbox"; then
     exit 1
   fi
   rclone mount "${remote}:" "$inbox" \
-    --drive-root-folder-id 1m9_atNUZuM-hyv8lZHbDR2vucHFBOS5y \
+    --drive-root-folder-id "$inbox_folder_id" \
     --vfs-cache-mode full \
     --vfs-cache-max-size 512M \
     --daemon
