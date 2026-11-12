@@ -201,6 +201,192 @@ def rack_with_runtime(rack, status):
     return payload
 
 
+class CapabilityInputError(ValueError):
+    """Entrée d'appel invalide, distincte d'une panne du service amont."""
+
+
+CAPABILITY_SPECS = {
+    "ai.models.list": {
+        "description": "Lister les modèles présents dans le catalogue Ollama local.",
+        "input_schema": {"type": "object", "properties": {}, "additionalProperties": False},
+    },
+    "watch.articles.search": {
+        "description": "Rechercher dans les articles déjà mis en cache par la veille.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "minLength": 2, "maxLength": 120},
+                "limit": {"type": "integer", "minimum": 1, "maximum": 20},
+            },
+            "required": ["query"], "additionalProperties": False,
+        },
+    },
+    "trading.status.read": {
+        "description": "Lire l'état de santé de Quant Core et son mode déclaré.",
+        "input_schema": {"type": "object", "properties": {}, "additionalProperties": False},
+    },
+}
+
+
+def rack_capabilities(rack):
+    """Expose les capacités déclarées et indique lesquelles ont un adaptateur sûr."""
+    items = []
+    for module in rack["modules"]:
+        for capability in module["capabilities"]:
+            spec = CAPABILITY_SPECS.get(capability)
+            items.append({
+                "id": capability,
+                "module": module["id"],
+                "description": spec["description"] if spec else "Capacité déclarée, adaptateur non raccordé.",
+                "state": "callable" if spec and capability in CAPABILITY_HANDLERS else "declared",
+                "permission": "read_only" if spec and capability in CAPABILITY_HANDLERS else "not_granted",
+                "side_effects": [],
+                "input_schema": spec["input_schema"] if spec else None,
+            })
+    return {"capabilities": items}
+
+
+def search_cached_articles(query, limit=10):
+    """Recherche locale bornée; ne rafraîchit pas les flux et ne suit aucun lien."""
+    if not isinstance(query, str) or not 2 <= len(query.strip()) <= 120:
+        raise CapabilityInputError("query doit contenir entre 2 et 120 caractères")
+    if type(limit) is not int or not 1 <= limit <= 20:
+        raise CapabilityInputError("limit doit être un entier entre 1 et 20")
+    terms = query.casefold().split()
+    if len(terms) > 10:
+        raise CapabilityInputError("query contient trop de termes")
+    with lock:
+        entries = list(cache.values())
+    matches = []
+    seen = set()
+    for entry in entries:
+        if not isinstance(entry, dict) or not isinstance(entry.get("items"), list):
+            continue
+        for item in entry["items"]:
+            if not isinstance(item, dict):
+                continue
+            article_id = item.get("id")
+            link = item.get("link", "")
+            if not isinstance(article_id, str) or not article_id or article_id in seen or not isinstance(link, str) or not link.startswith(("https://", "http://")):
+                continue
+            haystack = " ".join(str(item.get(key, "")) for key in ("title", "summary", "source", "cat")).casefold()
+            if all(term in haystack for term in terms):
+                seen.add(article_id)
+                matches.append({key: item.get(key) for key in ("id", "title", "summary", "link", "source", "cat", "date")})
+    matches.sort(key=lambda item: item.get("date") or 0, reverse=True)
+    return {"query": query.strip(), "count": len(matches), "returned": min(len(matches), limit), "items": matches[:limit], "cached_only": True}
+
+
+def list_ollama_models():
+    req = urllib.request.Request("http://127.0.0.1:11434/api/tags", headers={"User-Agent": UA})
+    with urllib.request.urlopen(req, timeout=3) as response:
+        payload = json.loads(response.read(256_000) or b"{}")
+    models = payload.get("models")
+    if not isinstance(models, list):
+        raise ValueError("catalogue Ollama invalide")
+    items = []
+    for model in models[:100]:
+        if not isinstance(model, dict) or not isinstance(model.get("name"), str):
+            continue
+        details = model.get("details") if isinstance(model.get("details"), dict) else {}
+        items.append({
+            "name": model["name"],
+            "family": details.get("family"),
+            "parameter_size": details.get("parameter_size"),
+            "quantization": details.get("quantization_level"),
+        })
+    return {"models": items}
+
+
+def read_trading_status():
+    base = os.environ.get("QUANT_CORE_URL", "http://127.0.0.1:3000").rstrip("/")
+    status = probe(f"{base}/api/health")
+    return {"online": status["online"], "declared_mode": "dry-run", "detail": "API Quant Core"}
+
+
+def _call_models(arguments):
+    if arguments:
+        raise CapabilityInputError("aucun paramètre accepté")
+    return list_ollama_models()
+
+
+def _call_article_search(arguments):
+    return search_cached_articles(arguments["query"], arguments.get("limit", 10))
+
+
+def _call_trading_status(arguments):
+    if arguments:
+        raise CapabilityInputError("aucun paramètre accepté")
+    return read_trading_status()
+
+
+CAPABILITY_HANDLERS = {
+    "ai.models.list": _call_models,
+    "watch.articles.search": _call_article_search,
+    "trading.status.read": _call_trading_status,
+}
+
+
+def validate_capability_input(capability, arguments):
+    if not isinstance(arguments, dict):
+        raise CapabilityInputError("input doit être un objet JSON")
+    schema = CAPABILITY_SPECS[capability]["input_schema"]
+    properties = schema["properties"]
+    if not schema.get("additionalProperties", True) and set(arguments) - set(properties):
+        raise CapabilityInputError("paramètre inconnu")
+    if set(schema.get("required", [])) - set(arguments):
+        raise CapabilityInputError("paramètre requis manquant")
+    for key, value in arguments.items():
+        field = properties.get(key)
+        if field is None:
+            continue
+        expected = field["type"]
+        valid_type = (isinstance(value, str) if expected == "string" else
+                      type(value) is int if expected == "integer" else
+                      isinstance(value, dict) if expected == "object" else False)
+        if not valid_type:
+            raise CapabilityInputError(f"{key} doit être de type {expected}")
+        if expected == "string" and not field.get("minLength", 0) <= len(value) <= field.get("maxLength", len(value)):
+            raise CapabilityInputError(f"{key} a une longueur invalide")
+        if expected == "integer" and not field.get("minimum", value) <= value <= field.get("maximum", value):
+            raise CapabilityInputError(f"{key} est hors limites")
+
+
+def call_rack_capability(capability, arguments):
+    """Exécute uniquement les adaptateurs déclarés ici; aucun nom de fonction dynamique."""
+    started = time.monotonic()
+    def failure(code, status, message):
+        return status, {
+            "capability": capability if isinstance(capability, str) else None,
+            "status": "error", "data": None,
+            "error": {"code": code, "message": message},
+            "duration_ms": round((time.monotonic() - started) * 1000),
+        }
+
+    if not isinstance(capability, str) or not capability:
+        return failure("invalid_capability", 400, "Identifiant de capacité requis.")
+    try:
+        declared = {item["id"] for item in rack_capabilities(load_rack())["capabilities"]}
+    except (OSError, ValueError, KeyError):
+        return failure("registry_unavailable", 503, "Registre des capacités indisponible.")
+    if capability not in declared:
+        return failure("unknown_capability", 404, "Capacité inconnue.")
+    handler = CAPABILITY_HANDLERS.get(capability)
+    if capability not in CAPABILITY_SPECS or handler is None:
+        return failure("not_connected", 409, "Cette capacité est déclarée, mais son adaptateur n'est pas raccordé.")
+    try:
+        validate_capability_input(capability, arguments)
+        result = handler(arguments)
+    except CapabilityInputError as error:
+        return failure("invalid_input", 400, str(error))
+    except (OSError, urllib.error.URLError, ValueError):
+        return failure("upstream_unavailable", 503, "Le service requis ne répond pas.")
+    return 200, {
+        "capability": capability, "status": "ok", "data": result,
+        "error": None, "duration_ms": round((time.monotonic() - started) * 1000),
+    }
+
+
 def sid(url):
     return hashlib.sha1(url.encode()).hexdigest()[:10]
 
@@ -521,9 +707,9 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
-    def body(self):
+    def body(self, max_bytes=2_000_000):
         n = int(self.headers.get("Content-Length") or 0)
-        if n > 2_000_000:
+        if n < 0 or n > max_bytes:
             raise ValueError("requete trop grosse")
         return json.loads(self.rfile.read(n) or b"{}")
 
@@ -686,6 +872,11 @@ h1{color:#ffb53d;font-size:28px}code{color:#3dff7f}a{color:#3dff7f}
             except (OSError, ValueError, KeyError) as e:
                 sys.stderr.write(f"registre du rack indisponible: {type(e).__name__}\n")
                 return self.send(503, {"error": "registre du rack indisponible"})
+        if u.path == "/api/rack/capabilities":
+            try:
+                return self.send(200, rack_capabilities(load_rack()))
+            except (OSError, ValueError, KeyError):
+                return self.send(503, {"error": "registre des capacités indisponible"})
         if u.path == "/api/feeds":
             return self.send(200, refresh(force=q.get("force") == ["1"]))
         if u.path == "/api/crypto":
@@ -745,11 +936,16 @@ h1{color:#ffb53d;font-size:28px}code{color:#3dff7f}a{color:#3dff7f}
             return self.proxy_superia()
         if not self.same_origin():
             return self.send(403, {"error": "origine refusee"})
+        path = urllib.parse.urlparse(self.path).path
         try:
-            data = self.body()
+            data = self.body(16_384 if path == "/api/rack/call" else 2_000_000)
         except ValueError as e:
             return self.send(400, {"error": str(e)})
-        path = urllib.parse.urlparse(self.path).path
+        if path == "/api/rack/call":
+            if not isinstance(data, dict):
+                return self.send(400, {"error": "le corps doit être un objet JSON"})
+            status, result = call_rack_capability(data.get("capability"), data.get("input", {}))
+            return self.send(status, result)
         with lock:
             if path == "/api/state":
                 for k in ("fav", "read", "lastVisit", "prevVisit", "watch", "topics"):
