@@ -16,9 +16,10 @@ Les journaux Ollama montrent une transition nette :
 Le navigateur conservait ce réglage dans `localStorage` et l'interface comme le
 serveur acceptaient une valeur maximale de `2.0`. Les requêtes concernées
 utilisaient en plus le modèle expérimental
-`hf.co/richardyoung/Qwen3-8B-Abliterated-GGUF:Q4_K_M`. Ce modèle désinhibé n'est
-pas le modèle de référence et ne doit recevoir ni outil, ni secret, ni coffre,
-ni action de trading.
+`hf.co/richardyoung/Qwen3-8B-Abliterated-GGUF:Q4_K_M`. Ce modèle expérimental
+n'est pas le modèle de référence. Comme les autres modèles locaux, il reçoit le
+même catalogue d'outils workspace; leurs filtres de chemins ne sont pas encore
+suffisants pour déclarer l'écriture sûre. Aucun ne reçoit d'outil de trading.
 
 Le GPU n'est pas en cause : Ollama a détecté la RTX 3060 Ti, utilisé CUDA, chargé
 le modèle en VRAM et terminé les générations sans troncature. Aucun OOM ni Xid
@@ -83,8 +84,8 @@ chat.
 - Conversation factuelle : température `0.2` à `0.5`.
 - Conversation générale : température `0.7`.
 - Créativité : jusqu'à `1.0`, avec vérification humaine.
-- Modèle `Abliterated` : laboratoire isolé uniquement, jamais sélectionné par
-  défaut et jamais connecté au coffre ou à un outil.
+- Modèle `Abliterated` : expérimental, jamais sélectionné par défaut; mêmes
+  outils locaux bornés que les autres modèles, sans secret ni accès trading.
 
 ## Retour arrière
 
