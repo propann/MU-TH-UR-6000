@@ -1,0 +1,74 @@
+project: azoth-ultime
+mode: personal-single-owner
+network:
+  current_transport: wifi
+  future_primary_transport: ethernet-switch
+  ethernet_interface: enp6s0
+  ethernet_status: unplugged
+  lan_entry: dhcp-reservation-pending
+  host_ipv4_observed: configured-outside-git
+services:
+  watch:
+    source: google-drive
+    repository: https://github.com/propann/MU-TH-UR-6000.git
+    drive_folder_id: configured-outside-git
+    local_repository: /home/azoth/serveur-local/sources/veille-azoth
+    bind_address: 0.0.0.0
+    port: 8765
+    lan_authentication: required
+    freqtrade_integration: planned
+    delivery_branch: main
+    validated_commit: tracked-by-main
+  trading:
+    repository: https://github.com/propann/freqtrade.git
+    branch: rebuild/engine-optional
+    pinned_commit: 614077163798fd5064882e1834850760831ba72a
+    initial_mode: dry-run
+    exchange_choice: pending
+    provisional_public_market_data: binance
+    instance_model: multiple-isolated-bot-sessions
+    initial_instances: 1
+    public_engine_port: false
+  agents:
+    repository: https://github.com/propann/super-ia.git
+    branch: fix/lan-token-login
+    pinned_commit: e33bd4b12f272888cadb2665c516f17ca7672f15
+  archived_automation_reference:
+    repository: https://github.com/propann/Az-N8N.git
+    deployment: disabled
+    useful_watch_workflows_found: false
+  local_ai:
+    engine: ollama
+    primary_model: qwen3:8b
+    future_candidate: hf.co/bartowski/Qwen_Qwen3.5-9B-GGUF:Q4_K_M
+    experimental_uncensored: hf.co/richardyoung/Qwen3-8B-Abliterated-GGUF:Q4_K_M
+    context_tokens_initial: 8192
+    max_loaded_models: 1
+    profiles:
+      primary:
+        tools_allowed: false
+        vault_read_after_validation: true
+        trading_actions_allowed: false
+      uncensored_lab:
+        tools_allowed: false
+        vault_access: false
+        secrets_access: false
+        trading_access: false
+  knowledge:
+    vault: SuperIA-Vault
+    drive_folder_id: configured-outside-git
+    watch_folder_id: configured-outside-git
+    source_of_truth: google-drive
+    local_role: synchronized-offline-mirror-and-index
+    ai_write_scope: Inbox
+    conflict_policy: preserve-both-and-request-review
+    secrets_allowed: false
+  mesh:
+    repositories:
+      - https://github.com/propann/LoRaZ-Family-Ops.git
+      - https://github.com/propann/Adopte-un-Mesh.git
+    tooling:
+      - meshtastic-cli
+      - platformio
+      - arduino-cli
+      - mosquitto

@@ -1,3 +1,10 @@
+runtime/
+.env
+.env.*
+!.env.example
+services/*
+!services/README.md
+docs/captures/*.png
 __pycache__/
 *.py[cod]
 data/*.json
