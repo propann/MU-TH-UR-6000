@@ -23,6 +23,11 @@ Le contrat est exposé par `GET /api/rack/capabilities` et
 Un appel renvoie `capability`, `status`, `data`, `error` et `duration_ms`.
 Les corps d'appel sont limités à 16 Kio; l'API reprend le contrôle d'accès du
 cockpit et vérifie l'origine des requêtes `POST`.
+Le pont `/api/rack/internal/call` prévu pour le backend Super IA n'accepte que
+les connexions loopback sans origine navigateur ni en-têtes de proxy; il ne
+donne accès qu'à la même allowlist de lectures. Cela vérifie l'origine réseau,
+pas l'identité du processus : tout processus local peut l'appeler. Le navigateur
+ne l'utilise pas.
 
 Trois capacités de lecture ont un adaptateur :
 
@@ -37,6 +42,9 @@ Les autres capacités restent déclaratives et un appel renvoie `not_connected`.
 Le chat Super IA ne consomme pas encore ce registre; le panneau RACK offre un
 test manuel des trois adaptateurs. Aucun outil de fichiers, d'écriture Obsidian,
 de rafraîchissement réseau ou de trading n'est exécutable par ce routeur.
+Le pont local est prêt pour une intégration, mais le backend Super IA doit
+encore enregistrer ces outils dans son catalogue Ollama commun et tester chacun
+des modèles locaux.
 
 ## Identité et objectifs
 
