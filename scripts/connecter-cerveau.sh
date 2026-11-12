@@ -18,8 +18,8 @@ if [ -z "$vault_folder_id" ] || [ -z "$inbox_folder_id" ]; then
   fi
   while IFS='=' read -r key value; do
     case "$key" in
-      AZOTH_VAULT_FOLDER_ID) vault_folder_id="$value" ;;
-      AZOTH_INBOX_FOLDER_ID) inbox_folder_id="$value" ;;
+      AZOTH_VAULT_FOLDER_ID) [ -n "$vault_folder_id" ] || vault_folder_id="$value" ;;
+      AZOTH_INBOX_FOLDER_ID) [ -n "$inbox_folder_id" ] || inbox_folder_id="$value" ;;
     esac
   done < "$folders_file"
 fi
