@@ -1,4 +1,9 @@
-project: azoth-ultime
+# Inventaire documentaire observé le snapshot_date; non chargé par les services.
+project: mu-th-ur-6000
+system_name: MU-TH-UR 6000
+system_nickname: Mother
+rack_manifest: config/rack.yaml
+snapshot_date: 2026-11-12
 mode: personal-single-owner
 network:
   current_transport: wifi
@@ -18,11 +23,12 @@ services:
     lan_authentication: required
     freqtrade_integration: planned
     delivery_branch: main
-    validated_commit: tracked-by-main
+    observed_commit: 8a4e3c6
   trading:
     repository: https://github.com/propann/freqtrade.git
     branch: rebuild/engine-optional
-    pinned_commit: 0adce65d64ad32c77982dd92b845437c9be70873
+    observed_commit: 48d80248790fee9604e94eaa23ef4f29954d3a35
+    worktree_clean: true
     initial_mode: dry-run
     exchange_choice: pending
     provisional_public_market_data: binance
@@ -31,8 +37,14 @@ services:
     public_engine_port: false
   agents:
     repository: https://github.com/propann/super-ia.git
-    branch: fix/lan-token-login
-    pinned_commit: 179085fd2fde7a417d72f05796f36c3f9d0a93ae
+    source_checkout: /home/azoth/serveur-local/sources/super-ia
+    source_branch: main
+    source_commit: 8f8407b
+    source_worktree_clean: true
+    runtime_checkout: /home/azoth/serveur-local/worktrees/super-ia-lan-auth
+    runtime_branch: fix/lan-token-login
+    runtime_commit: 8baa9118f548d68e968576677365bb0ea167606b
+    runtime_worktree_clean: false
   archived_automation_reference:
     repository: https://github.com/propann/Az-N8N.git
     deployment: disabled
@@ -46,12 +58,12 @@ services:
     max_loaded_models: 1
     profiles:
       primary:
-        tools_allowed: false
+        tools_allowed: true
         vault_read_after_validation: true
         trading_actions_allowed: false
       uncensored_lab:
-        tools_allowed: false
-        vault_access: false
+        tools_allowed: true
+        vault_access: explicit-context-opt-in
         secrets_access: false
         trading_access: false
   knowledge:
@@ -59,7 +71,7 @@ services:
     drive_folder_id: configured-outside-git
     watch_folder_id: configured-outside-git
     source_of_truth: google-drive
-    local_role: synchronized-offline-mirror-and-index
+    local_role: rclone-mounted-editable-cache-and-index
     ai_write_scope: Inbox
     conflict_policy: preserve-both-and-request-review
     secrets_allowed: false
