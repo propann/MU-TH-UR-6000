@@ -57,7 +57,7 @@ trading personnelle.
   de confiance ou passer par un VPN; ne pas publier le port sur Internet ;
 - Freqtrade reste en `dry-run`, sans clé d'exchange ;
 - l'IA n'active pas le trading et ne place aucun ordre ;
-- les modèles locaux partagent le même catalogue d'outils, dont le périmètre doit être durci ;
+- les modèles Ollama partagent le catalogue d'outils Super IA ; le rack MU-TH-UR expose au chat trois capacités explicitement limitées à la lecture ;
 - l'utilisateur édite librement Obsidian; l'IA ne crée que des brouillons dans `Inbox/` ;
 - le contexte Obsidian vers Mistral doit devenir un opt-in réel; l'interface
   actuelle coche l'option par défaut, correction requise avant mise en route.
@@ -96,6 +96,7 @@ python3 -m unittest discover -s tests -v
 
 - [Architecture](docs/ARCHITECTURE.md)
 - [Rack logiciel Mother](docs/RACK-LOGICIEL.md)
+- [IA locale, démarrage groupé et intégration rack](docs/IA-LOCALE-ET-RACK.md)
 - [Plan de mise en route](docs/PLAN-MISE-EN-ROUTE.md)
 - [Trame graphique MU-TH-UR](docs/DESIGN-SYSTEM.md)
 - [Audit de la Veille et étude Mistral](docs/AUDIT-VEILLE-MISTRAL.md)

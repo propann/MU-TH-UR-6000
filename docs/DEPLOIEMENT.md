@@ -145,11 +145,14 @@ demande les services suivants :
 - `ollama.service` ;
 - `azoth-vault.service`, montage du coffre et d'Inbox ;
 - `veille-azoth.service` ;
-- `azoth-quant.service`, qui attend Docker puis applique le Compose dry-run.
+- `azoth-quant.service`, qui attend Docker puis applique le Compose dry-run ;
 - `superia-web.service`, interface IA multi-fournisseurs sur le port `3210`.
-- `superia-local.target` existe aussi et a été activé; c'est une deuxième entrée
-  ciblée IA. Redémarrer un target ne garantit pas le redémarrage de ses unités
-  actives. Choisir et documenter un seul point d'entrée opérateur.
+
+Pour l'usage IA seul, `superia-local.target` est le point d'entrée dédié. Il
+regroupe Ollama, le chat Super IA et Veille MU-TH-UR, nécessaire au pont rack.
+Ses fichiers de référence sont dans [`config/systemd`](../config/systemd) ; le
+drop-in `PartOf` assure que les trois unités suivent un redémarrage du target.
+Installation et vérification : [`IA-LOCALE-ET-RACK.md`](IA-LOCALE-ET-RACK.md).
 
 ## Porte d'entrée unique
 

@@ -37,6 +37,7 @@ fi
 cockpit_url="${AZOTH_COCKPIT_URL:-http://127.0.0.1:8765}"
 quant_url="${QUANT_CORE_URL:-http://127.0.0.1:3000/quant}"
 check_url "Cockpit" "${cockpit_url}/" "azoth:${veille_password}" 8
+check_url "Rack MU-TH-UR" "${cockpit_url}/api/rack/capabilities" "azoth:${veille_password}" 3
 check_url "Super IA locale" "http://127.0.0.1:3210/healthz"
 check_url "Quant Core local" "${quant_url}/api/health"
 

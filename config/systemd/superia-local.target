@@ -1,0 +1,8 @@
+[Unit]
+Description=Super IA locale - Ollama, interface web et rack MU-TH-UR
+Requires=ollama.service superia-web.service veille-azoth.service
+After=ollama.service superia-web.service veille-azoth.service
+Wants=network-online.target
+
+[Install]
+WantedBy=default.target

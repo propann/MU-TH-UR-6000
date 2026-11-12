@@ -22,8 +22,9 @@ L'accès LAN passe uniquement par le cockpit :
 ## Modèles et confidentialité
 
 Ollama est le fournisseur par défaut. La liste de modèles est lue depuis
-`http://127.0.0.1:11434/api/tags`. Le modèle, la température et la longueur
-maximale sont choisis dans l'interface.
+`http://127.0.0.1:11434/api/tags`. Le modèle, le mode de raisonnement et le
+budget de sortie sont choisis dans l'interface; la température Qwen3 est réglée
+automatiquement selon le mode pour garder un profil simple et cohérent.
 
 Mistral est appelé après sélection manuelle du fournisseur et envoi du message;
 il n'y a pas de confirmation distincte avant chaque requête. Sa clé est saisie
@@ -59,10 +60,11 @@ et ne peut donc pas écraser une note existante.
 ## Démarrage
 
 Le target `azoth.target` demande Ollama, le coffre, Super IA, le cockpit et
-Quant Core. `superia-local.target` est un target secondaire pour le couple IA;
-le redémarrage du target ne redémarre pas forcément les services déjà actifs.
-Pour redémarrer le couple, redémarrer explicitement ses deux unités :
-`systemctl --user restart ollama.service superia-web.service`.
+Quant Core. Pour l'IA seule, `superia-local.target` regroupe Ollama, Super IA et
+Veille MU-TH-UR, qui fournit le pont rack. Ses drop-ins lient le redémarrage des
+trois unités au target :
+`systemctl --user restart superia-local.target`. La configuration reproductible
+est documentée dans [`IA-LOCALE-ET-RACK.md`](IA-LOCALE-ET-RACK.md).
 
 ```bash
 systemctl --user daemon-reload
