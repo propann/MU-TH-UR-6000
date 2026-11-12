@@ -92,8 +92,10 @@ case cochée demande une preuve reproductible, pas seulement un service `active`
   et un résultat/erreur/durée normalisés pour les lectures.
 - [x] Raccorder `ai.models.list`, `watch.articles.search` (cache uniquement) et
   `trading.status.read`; le panneau RACK permet de les essayer manuellement.
-- [ ] Connecter le chat Super IA à ce routeur après validation de son contrat
-  d'outils et des règles d'authentification entre services.
+- [x] Préparer un pont HTTP de lecture pour le backend : loopback seulement,
+  origine navigateur et en-têtes de proxy refusés, même allowlist que le cockpit.
+- [ ] Connecter le chat Super IA à ce pont puis éprouver chaque modèle local;
+  le contrôle loopback ne prouve pas à lui seul l'identité du processus appelant.
 - [ ] Ajouter un adaptateur Obsidian limité à rechercher/lire du contexte et
   créer un brouillon Inbox; afficher sources et reçus d'outil.
 - [ ] Décider si MCP est nécessaire après extraction de ces fonctions dans un
