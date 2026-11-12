@@ -55,7 +55,7 @@ async function api(path, body) {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
   });
   const data = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(data.error || r.statusText);
+  if (!r.ok) throw new Error(typeof data.error === 'string' ? data.error : data.error?.message || r.statusText);
   return data;
 }
 
@@ -99,17 +99,26 @@ async function openRack() {
   content.innerHTML = '<p class="rack-message">Lecture du manifeste Mother…</p>';
   if (!dialog.open) dialog.showModal();
   try {
-    const rack = await api('/api/rack');
+    const [rack, registry] = await Promise.all([api('/api/rack'), api('/api/rack/capabilities')]);
     const modules = Array.isArray(rack.modules) ? rack.modules : [];
+    const capabilities = new Map((registry.capabilities || []).map(item => [item.id, item]));
+    const callableCount = [...capabilities.values()].filter(item => item.state === 'callable').length;
     const checked = rack.runtime?.observed_at ? new Date(rack.runtime.observed_at).toLocaleTimeString('fr-FR') : 'heure inconnue';
-    $('#rackIntro').textContent = `${rack.system?.name || 'MU-TH-UR 6000'} · état observé à ${checked} · routage des capacités à construire`;
+    $('#rackIntro').textContent = `${rack.system?.name || 'MU-TH-UR 6000'} · état observé à ${checked} · ${callableCount} capacité(s) en lecture raccordée`;
     const labels = { available: 'DISPONIBLE', limited: 'LIMITÉ', isolated: 'ISOLÉ', inactive: 'ARRÊTÉ', planned: 'À CONSTRUIRE' };
     content.innerHTML = modules.map(module => {
       const status = ['available', 'limited', 'isolated', 'inactive', 'planned'].includes(module.status) ? module.status : 'limited';
       const runtime = ['online', 'offline', 'not_probed'].includes(module.runtime?.status) ? module.runtime : { status: 'not_probed', label: 'NON SONDE', detail: '' };
-      const capabilities = (Array.isArray(module.capabilities) ? module.capabilities : []).map(item => `<code>${esc(item)}</code>`).join('') || '<span class="rack-none">Aucune capacité active</span>';
+      const capabilityCards = (Array.isArray(module.capabilities) ? module.capabilities : []).map(id => {
+        const capability = capabilities.get(id);
+        const callable = capability?.state === 'callable';
+        const stateLabel = callable ? 'RACCORDÉE · LECTURE' : 'DÉCLARÉE';
+        const queryField = id === 'watch.articles.search' ? '<input name="query" maxlength="120" minlength="2" placeholder="Mots à rechercher" aria-label="Mots à rechercher">' : '';
+        const control = callable ? `<form class="rack-call-form" data-capability="${esc(id)}">${queryField}<button type="submit">${id === 'watch.articles.search' ? 'Rechercher' : 'Exécuter'}</button></form><pre class="rack-result" hidden></pre>` : '';
+        return `<div class="rack-capability"><code>${esc(id)}</code><small class="${callable ? 'callable' : 'declared'}">${stateLabel}</small>${control}</div>`;
+      }).join('') || '<span class="rack-none">Aucune capacité déclarée</span>';
       const notes = (Array.isArray(module.notes) ? module.notes : []).map(item => `<li>${esc(item)}</li>`).join('');
-      return `<article class="rack-card ${status}"><div class="rack-card-head"><h3>${esc(module.name)}</h3><b>${labels[status]}</b></div><p>${esc(module.summary || '')}</p><div class="rack-runtime ${runtime.status}"><b>${esc(runtime.label)}</b><span>${esc(runtime.detail)}</span></div><div class="rack-capabilities">${capabilities}</div>${notes ? `<ul>${notes}</ul>` : ''}<small>${esc(module.id)}</small></article>`;
+      return `<article class="rack-card ${status}"><div class="rack-card-head"><h3>${esc(module.name)}</h3><b>${labels[status]}</b></div><p>${esc(module.summary || '')}</p><div class="rack-runtime ${runtime.status}"><b>${esc(runtime.label)}</b><span>${esc(runtime.detail)}</span></div><div class="rack-capabilities">${capabilityCards}</div>${notes ? `<ul>${notes}</ul>` : ''}<small>${esc(module.id)}</small></article>`;
     }).join('') || '<p class="rack-message">Aucun module déclaré.</p>';
   } catch (error) {
     $('#rackIntro').textContent = 'Le registre n’a pas pu être chargé.';
@@ -470,6 +479,26 @@ $('#modules').addEventListener('click', e => {
   alert(`${names[module.dataset.module]} : l’état est déjà supervisé. L’interface native sera activée à l’étape suivante.`);
 });
 $('#rackClose').onclick = () => $('#rackDialog').close();
+$('#rackContent').addEventListener('submit', async e => {
+  const form = e.target.closest('.rack-call-form');
+  if (!form) return;
+  e.preventDefault();
+  const button = form.querySelector('button[type="submit"]');
+  const output = form.closest('.rack-card').querySelector('.rack-result');
+  const query = form.querySelector('[name="query"]')?.value.trim();
+  const input = query === undefined ? {} : { query };
+  button.disabled = true;
+  output.hidden = false;
+  output.textContent = 'Appel en cours…';
+  try {
+    const result = await api('/api/rack/call', { capability: form.dataset.capability, input });
+    output.textContent = JSON.stringify(result, null, 2);
+  } catch (error) {
+    output.textContent = error instanceof Error ? error.message : String(error);
+  } finally {
+    button.disabled = false;
+  }
+});
 
 /** Arrête le serveur local (la veille lancée par l'icône tourne sans fenêtre). */
 $('#btnOff').onclick = async () => {
