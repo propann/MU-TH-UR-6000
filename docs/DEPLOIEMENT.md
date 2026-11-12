@@ -83,17 +83,18 @@ Voir aussi [IA-OBSIDIAN.md](IA-OBSIDIAN.md) pour l'architecture du chat, le
 montage restreint d'`Inbox`, les vérifications et le retour arrière.
 
 Le dossier Drive `SuperIA-Vault` reste la source officielle. Le chemin local
-prévu est `/home/azoth/GoogleDrive/SuperIA-Vault`, monté en lecture seule avec
-`serveur-local/connecter-cerveau.sh` après configuration interactive de rclone.
+prévu est `/home/azoth/GoogleDrive/SuperIA-Vault`, monté en lecture-écriture avec
+`serveur-local/connecter-cerveau.sh` afin qu'Obsidian puisse créer, modifier,
+renommer et supprimer les notes de l'utilisateur.
 
 Drive contient deux dossiers homonymes. Le coffre actif retenu le 11 novembre
 2026 est celui qui contient `.obsidian`, `Accueil SuperIA.md`,
 `Reprise SuperIA et état du système.md` et les notes les plus récentes. L'autre
 dossier reste intact et ne doit jamais être fusionné automatiquement.
 
-Le coffre complet est monté en lecture seule. Un second montage indépendant,
+Le coffre complet est éditable par l'utilisateur dans Obsidian. Un second montage indépendant,
 `/home/azoth/GoogleDrive/SuperIA-Inbox`, cible uniquement le dossier Drive
-`Inbox` en écriture : l'IA peut y créer des brouillons sans modifier ni écraser
+`Inbox` : l'IA y crée ses brouillons sans modifier ni écraser automatiquement
 les notes existantes. Le coffre ne doit contenir aucun secret ni donnée
 d'exécution.
 
@@ -109,7 +110,8 @@ la fenêtre du chat et reste chiffrée dans le coffre privé de Super IA.
 - moteur non publié et console reliée au cockpit sous `/quant/` ;
 - chat local Ollama fonctionnel, sans outil système ni droit trading ;
 - température limitée côté serveur après l'incident du 12 novembre ;
-- recherche Obsidian locale avec citations et écriture limitée à `Inbox/` ;
+- coffre Obsidian éditable par l'utilisateur, recherche locale avec citations
+  et écriture automatique de l'IA limitée à `Inbox/` ;
 - montage Drive et conservation du démarrage après redémarrage à surveiller.
 
 ## Retour arrière
