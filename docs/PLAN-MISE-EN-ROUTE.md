@@ -38,6 +38,13 @@ case cochée demande une preuve reproductible, pas seulement un service `active`
   des unités, `/api/version` Ollama, `/api/tags`, `/healthz` Super IA, la liste
   `/api/chat/models`, le proxy cockpit `/ia/` et l'état du montage Obsidian.
   Noter les horodatages et les versions effectives.
+- [ ] **Valider les flux depuis le poste de production.** Les erreurs Reddit
+  `429`, DPReview `403` et le délai Codeberg ont été observés le 12 novembre
+  2026; retester après modification des délais et conserver les anciens articles
+  en cas de panne. Les résultats réseau dépendent de l'IP et de l'heure.
+- [x] Le vérificateur actif accepte le fichier de mot de passe utilisateur, un
+  chemin explicite via `VEILLE_PASSWORD_FILE`, ou le fichier système Pi
+  `/etc/veille-azoth.env` lorsqu'il est lisible.
 - [ ] **Sécuriser les outils de fichiers avant de les appeler un éditeur.** Le
   code actuellement présent dans le worktree Super IA base les chemins sur
   `process.cwd()` (le dépôt Super IA du service), autorise `write_file` avec
