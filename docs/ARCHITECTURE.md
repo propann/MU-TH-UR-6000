@@ -1,8 +1,10 @@
 # Architecture cible
 
 Le produit est **MU-TH-UR 6000**, surnommé **Mother**. Le [rack logiciel](RACK-LOGICIEL.md)
-décrit les capacités, les adaptateurs présents et les intégrations à construire;
-son manifeste YAML n'est pas encore chargé par un routeur runtime. MU-TH-UR est
+décrit les capacités, les adaptateurs présents et les intégrations à construire.
+Le manifeste `config/rack.json` est chargé par Veille Azoth via `GET /api/rack`
+et présenté dans le cockpit. Ses états sont déclaratifs : ils ne sont pas
+sondés en direct, et le rack ne route ni n'exécute encore les capacités. MU-TH-UR est
 le dépôt de référence; certains services restent externes et leur intégration
 ou migration est suivie dans le [plan de mise en route](PLAN-MISE-EN-ROUTE.md).
 
