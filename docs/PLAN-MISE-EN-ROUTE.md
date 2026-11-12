@@ -41,7 +41,9 @@ case cochée demande une preuve reproductible, pas seulement un service `active`
 - [ ] **Valider les flux depuis le poste de production.** Les erreurs Reddit
   `429`, DPReview `403` et le délai Codeberg ont été observés le 12 novembre
   2026; retester après modification des délais et conserver les anciens articles
-  en cas de panne. Les résultats réseau dépendent de l'IP et de l'heure.
+  en cas de panne. Les six entrées Reddit ont déjà un TTL d'une heure; le bouton
+  de forçage a été aligné sur ce TTL pour éviter qu'il ne relance ces flux toutes
+  les cinq minutes. Les résultats réseau dépendent de l'IP et de l'heure.
 - [x] Le vérificateur actif accepte le fichier de mot de passe utilisateur, un
   chemin explicite via `VEILLE_PASSWORD_FILE`, ou le fichier système Pi
   `/etc/veille-azoth.env` lorsqu'il est lisible.
