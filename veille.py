@@ -162,8 +162,42 @@ def cockpit_status():
         "trading": {**trading, "mode": "dry-run"},
         "ai": {**ollama, "workspace_online": superia["online"]},
         "vault": {"online": bool(vault and vault.is_dir()),
-                  "detail": str(vault) if vault else "miroir local non monté"},
+                  "detail": "coffre monté" if vault and vault.is_dir() else "miroir local non monté"},
     }
+
+
+def rack_with_runtime(rack, status):
+    """Ajoute au manifeste les sondes locales sans publier de chemins privés."""
+    observed_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    checks = {
+        "inference.ollama": (status["ai"]["online"], "API Ollama"),
+        "workspace.superia": (status["ai"]["workspace_online"], "API Super IA"),
+        "trading.freqtrade": (status["trading"]["online"], "API Quant Core"),
+        "knowledge.obsidian": (status["vault"]["online"], "Montage Obsidian"),
+        "watch.veille": (True, "Serveur Veille Azoth"),
+    }
+    payload = {**rack, "runtime": {"observed_at": observed_at}}
+    payload["modules"] = []
+    for module in rack["modules"]:
+        entry = dict(module)
+        check = checks.get(module["id"])
+        if check:
+            online, label = check
+            detail = label
+            if module["id"] == "inference.ollama" and status["ai"].get("detail"):
+                detail = f"{label} · version {status['ai']['detail']}"
+            entry["runtime"] = {
+                "status": "online" if online else "offline",
+                "label": "EN LIGNE" if online else "HORS LIGNE",
+                "detail": detail,
+            }
+        else:
+            entry["runtime"] = {
+                "status": "not_probed", "label": "NON SONDE",
+                "detail": "Aucune sonde runtime n’est configurée pour ce module.",
+            }
+        payload["modules"].append(entry)
+    return payload
 
 
 def sid(url):
@@ -646,9 +680,11 @@ h1{color:#ffb53d;font-size:28px}code{color:#3dff7f}a{color:#3dff7f}
         q = urllib.parse.parse_qs(u.query)
         if u.path == "/api/rack":
             try:
-                return self.send(200, load_rack())
-            except (OSError, ValueError) as e:
-                return self.send(503, {"error": "registre du rack indisponible", "detail": str(e)})
+                rack = load_rack()
+                return self.send(200, rack_with_runtime(rack, cockpit_status()))
+            except (OSError, ValueError, KeyError) as e:
+                sys.stderr.write(f"registre du rack indisponible: {type(e).__name__}\n")
+                return self.send(503, {"error": "registre du rack indisponible"})
         if u.path == "/api/feeds":
             return self.send(200, refresh(force=q.get("force") == ["1"]))
         if u.path == "/api/crypto":
