@@ -6,16 +6,22 @@ check_url() {
   local label="$1"
   local url="$2"
   local credentials="${3:-}"
+  local attempts="${4:-1}"
+  local attempt=1
   local curl_args=(-fsS --max-time 3)
   if [ -n "$credentials" ]; then
     curl_args+=(-u "$credentials")
   fi
-  if curl "${curl_args[@]}" "$url" >/dev/null; then
-    printf 'OK      %s\n' "$label"
-  else
-    printf 'ATTENTE %s\n' "$label"
-    errors=$((errors + 1))
-  fi
+  while [ "$attempt" -le "$attempts" ]; do
+    if curl "${curl_args[@]}" "$url" >/dev/null 2>&1; then
+      printf 'OK      %s\n' "$label"
+      return
+    fi
+    if [ "$attempt" -lt "$attempts" ]; then sleep 1; fi
+    attempt=$((attempt + 1))
+  done
+  printf 'ATTENTE %s\n' "$label"
+  errors=$((errors + 1))
 }
 
 check_url "Ollama" "http://127.0.0.1:11434/api/version"
@@ -30,7 +36,7 @@ elif [ -z "$veille_password" ] && command -v sudo >/dev/null 2>&1 && sudo -n tes
 fi
 cockpit_url="${AZOTH_COCKPIT_URL:-http://127.0.0.1:8765}"
 quant_url="${QUANT_CORE_URL:-http://127.0.0.1:3000/quant}"
-check_url "Cockpit" "${cockpit_url}/" "azoth:${veille_password}"
+check_url "Cockpit" "${cockpit_url}/" "azoth:${veille_password}" 8
 check_url "Super IA locale" "http://127.0.0.1:3210/healthz"
 check_url "Quant Core local" "${quant_url}/api/health"
 
