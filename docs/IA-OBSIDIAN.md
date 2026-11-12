@@ -80,7 +80,7 @@ node --test tests/web.test.mjs
 
 python3 -m py_compile ~/serveur-local/sources/veille-azoth/veille.py
 bash -n ~/serveur-local/connecter-cerveau.sh
-git -C ~/Projets/Azoth-Ultime diff --check
+git diff --check
 ```
 
 Le test ciblé de stabilité de température doit toujours passer. Dans un

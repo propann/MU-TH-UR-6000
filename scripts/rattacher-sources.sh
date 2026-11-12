@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-project_root="/home/azoth/Projets/Azoth-Ultime"
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+project_root="$(cd -- "${script_dir}/.." && pwd)"
 source_root="/home/azoth/serveur-local/sources"
 
 for repo in freqtrade super-ia veille-azoth; do

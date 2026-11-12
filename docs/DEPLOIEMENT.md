@@ -158,5 +158,5 @@ Commandes opérateur :
 
 ```bash
 systemctl --user start azoth.target
-bash ~/Projets/Azoth-Ultime/scripts/verifier-azoth-actif.sh
+bash scripts/verifier-azoth-actif.sh
 ```

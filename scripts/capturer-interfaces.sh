@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-project_root="/home/azoth/Projets/Azoth-Ultime"
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+project_root="$(cd -- "${script_dir}/.." && pwd)"
 capture_dir="${project_root}/docs/captures"
 firefox_bin="${FIREFOX_BIN:-/usr/bin/firefox}"
 

@@ -79,5 +79,5 @@ Socle installé. Aucune clé et aucun compte n'ont été configurés.
 Fermer complètement la session utilisateur puis la rouvrir pour appliquer les
 groupes docker et dialout. Ensuite lancer :
 
-  bash ~/Projets/Azoth-Ultime/scripts/valider-socle-dev.sh
+  bash scripts/valider-socle-dev.sh
 TXT

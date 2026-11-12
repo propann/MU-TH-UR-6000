@@ -70,7 +70,7 @@ Après redémarrage du service sur l'hôte :
 
 ```bash
 systemctl --user restart superia-web.service
-bash ~/Projets/Azoth-Ultime/scripts/tester-ia-locale.sh
+bash scripts/tester-ia-locale.sh
 journalctl --user -u ollama.service -n 100 --no-pager | grep 'temp ='
 ```
 
