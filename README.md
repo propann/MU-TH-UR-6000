@@ -85,6 +85,7 @@ Ne jamais démarrer tous les laboratoires pour un simple contrôle documentaire.
 - [Trame graphique MU-TH-UR](docs/DESIGN-SYSTEM.md)
 - [Audit de la Veille et étude Mistral](docs/AUDIT-VEILLE-MISTRAL.md)
 - [Assistant Mistral transversal](docs/ASSISTANT-OVERLAY.md)
+- [Liaison Mistral et Obsidian](docs/MISTRAL-OBSIDIAN.md)
 - [État du déploiement](docs/DEPLOIEMENT.md)
 - [IA et Obsidian](docs/IA-OBSIDIAN.md)
 - [Incident IA du 12 novembre](docs/INCIDENT-IA-2026-11-12.md)
