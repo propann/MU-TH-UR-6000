@@ -18,6 +18,16 @@ La clé reste côté serveur dans le coffre chiffré Super IA. Les réponses peu
 Cette liaison documentaire ne donne pas au modèle un outil de modification des
 notes existantes. L'utilisateur conserve l'édition normale dans Obsidian.
 
+## État de la case et du backend
+
+Le code d'interface actuellement inspecté initialise cette case comme cochée.
+Ce n'est pas conforme à une activation explicite : le réglage doit être décoché
+par défaut avant la mise en route stable. Le HEAD du dépôt Super IA transmet le
+contexte demandé au fournisseur choisi; le worktree utilisé par l'unité systemd
+contient une modification locale qui limite le contexte à Ollama. L'unité lance
+le fichier compilé `dist/index.js`, donc vérifier le contenu effectivement
+compilé et chargé avant d'affirmer le comportement Mistral.
+
 ## Activation
 
 Après compilation de Super IA, redémarrer `superia-web.service` et
