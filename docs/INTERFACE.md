@@ -1,4 +1,8 @@
-# Interface unifiée Azoth
+# Interface cible MU-TH-UR 6000
+
+Ce document décrit la cible produit, pas l'interface actuellement livrée.
+L'état implémenté est décrit dans le README et le
+[plan de mise en route](PLAN-MISE-EN-ROUTE.md).
 
 ## Expérience recherchée
 
