@@ -73,6 +73,8 @@ h1 em{color:var(--red);font-style:normal;text-shadow:0 0 10px var(--red)}
 .rack-card-head b{color:var(--amber);font-size:9px;letter-spacing:.08em;white-space:nowrap}
 .rack-card.available .rack-card-head b{color:var(--g)}.rack-card.planned .rack-card-head b{color:#9bb0ff}.rack-card.inactive .rack-card-head b{color:var(--mut)}
 .rack-card p{color:var(--gd);font-size:12px;margin:8px 0}
+.rack-runtime{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:7px;color:var(--mut);font-size:10px}
+.rack-runtime b{letter-spacing:.08em;color:var(--amber)}.rack-runtime.online b{color:var(--g)}.rack-runtime.offline b{color:var(--red)}
 .rack-capabilities{display:flex;flex-wrap:wrap;gap:5px}
 .rack-capabilities code{padding:2px 5px;border:1px solid var(--line2);color:var(--g);font-size:10px;overflow-wrap:anywhere}
 .rack-none,.rack-card li,.rack-card>small,.rack-message{color:var(--mut);font-size:11px}
