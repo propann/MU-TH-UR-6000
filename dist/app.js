@@ -101,13 +101,15 @@ async function openRack() {
   try {
     const rack = await api('/api/rack');
     const modules = Array.isArray(rack.modules) ? rack.modules : [];
-    $('#rackIntro').textContent = `${rack.system?.name || 'MU-TH-UR 6000'} · registre informatif, le routage runtime reste à construire`;
+    const checked = rack.runtime?.observed_at ? new Date(rack.runtime.observed_at).toLocaleTimeString('fr-FR') : 'heure inconnue';
+    $('#rackIntro').textContent = `${rack.system?.name || 'MU-TH-UR 6000'} · état observé à ${checked} · routage des capacités à construire`;
     const labels = { available: 'DISPONIBLE', limited: 'LIMITÉ', isolated: 'ISOLÉ', inactive: 'ARRÊTÉ', planned: 'À CONSTRUIRE' };
     content.innerHTML = modules.map(module => {
       const status = ['available', 'limited', 'isolated', 'inactive', 'planned'].includes(module.status) ? module.status : 'limited';
+      const runtime = ['online', 'offline', 'not_probed'].includes(module.runtime?.status) ? module.runtime : { status: 'not_probed', label: 'NON SONDE', detail: '' };
       const capabilities = (Array.isArray(module.capabilities) ? module.capabilities : []).map(item => `<code>${esc(item)}</code>`).join('') || '<span class="rack-none">Aucune capacité active</span>';
       const notes = (Array.isArray(module.notes) ? module.notes : []).map(item => `<li>${esc(item)}</li>`).join('');
-      return `<article class="rack-card ${status}"><div class="rack-card-head"><h3>${esc(module.name)}</h3><b>${labels[status]}</b></div><p>${esc(module.summary || '')}</p><div class="rack-capabilities">${capabilities}</div>${notes ? `<ul>${notes}</ul>` : ''}<small>${esc(module.id)}</small></article>`;
+      return `<article class="rack-card ${status}"><div class="rack-card-head"><h3>${esc(module.name)}</h3><b>${labels[status]}</b></div><p>${esc(module.summary || '')}</p><div class="rack-runtime ${runtime.status}"><b>${esc(runtime.label)}</b><span>${esc(runtime.detail)}</span></div><div class="rack-capabilities">${capabilities}</div>${notes ? `<ul>${notes}</ul>` : ''}<small>${esc(module.id)}</small></article>`;
     }).join('') || '<p class="rack-message">Aucun module déclaré.</p>';
   } catch (error) {
     $('#rackIntro').textContent = 'Le registre n’a pas pu être chargé.';
