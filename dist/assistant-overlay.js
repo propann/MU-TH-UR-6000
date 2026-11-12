@@ -20,6 +20,11 @@
     root.querySelectorAll('[data-mode]').forEach(x=>x.classList.remove('on')); button.classList.add('on'); mode=button.dataset.mode;
     if(mode==='edit') add('notice','Mode éditeur Vibe : les modifications doivent être préparées dans un worktree et confirmées depuis Super IA. Aucun shell arbitraire n’est exposé ici.');
   });
+  input.addEventListener('keydown', event => {
+    if (event.key !== 'Enter' || event.shiftKey || event.isComposing || event.repeat) return;
+    event.preventDefault();
+    form.requestSubmit();
+  });
   form.onsubmit=async event=>{
     event.preventDefault(); const text=input.value.trim(); if(!text)return; input.value=''; add('me',text);
     history.push({role:'user',content:text}); const send=form.querySelector('button'); send.disabled=true;
