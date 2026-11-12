@@ -29,9 +29,9 @@ message. Sa clé est saisie dans la page IA, chiffrée en AES-256-GCM et stocké
 hors Git dans `~/.superia/credentials/vault.enc`. La clé n'est jamais renvoyée
 au navigateur après son enregistrement.
 
-Le contexte Obsidian est automatiquement désactivé quand Mistral est choisi.
-Aucune note du coffre n'est donc envoyée à une API distante par la fonction de
-recherche documentaire.
+Le contexte Obsidian est disponible avec Ollama et Mistral via la case « Utiliser
+Obsidian ». Avec Mistral, les extraits sélectionnés sont transmis à l'API distante.
+Voir [la liaison Mistral et Obsidian](MISTRAL-OBSIDIAN.md) pour le périmètre exact.
 
 ## Coffre documentaire
 
