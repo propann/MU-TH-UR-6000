@@ -2,7 +2,7 @@
 project: mu-th-ur-6000
 system_name: MU-TH-UR 6000
 system_nickname: Mother
-rack_manifest: config/rack.yaml
+rack_manifest: config/rack.json
 snapshot_date: 2026-11-12
 mode: personal-single-owner
 network:
