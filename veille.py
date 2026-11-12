@@ -479,6 +479,16 @@ class Handler(BaseHTTPRequestHandler):
         origin = self.headers.get("Origin")
         return origin is None or origin == f"http://{self.headers.get('Host')}"
 
+    @staticmethod
+    def inject_assistant_overlay(payload):
+        """Ajoute le client partagé sans dépendre du framework de la page."""
+        marker = b'<script src="/assistant-overlay.js" defer></script>'
+        if marker in payload:
+            return payload
+        lowered = payload.lower()
+        index = lowered.rfind(b"</body>")
+        return payload[:index] + marker + payload[index:] if index >= 0 else payload + marker
+
     def proxy_quant(self):
         """Passe Quant Core derrière l'authentification unique du cockpit."""
         target = urllib.parse.urlparse(QUANT_PROXY_URL)
@@ -498,6 +508,9 @@ class Handler(BaseHTTPRequestHandler):
             connection.request(self.command, self.path, body=body, headers=forwarded)
             upstream = connection.getresponse()
             payload = upstream.read()
+            content_type = upstream.getheader("Content-Type", "")
+            if "text/html" in content_type:
+                payload = self.inject_assistant_overlay(payload)
             self.send_response(upstream.status)
             for key, value in upstream.getheaders():
                 if key.lower() not in {"connection", "content-length", "transfer-encoding"}:
@@ -556,7 +569,7 @@ class Handler(BaseHTTPRequestHandler):
                 page = page.replace('action="/logout"', 'action="/ia/logout"')
                 page = page.replace('action="/session"', 'action="/ia/session"')
                 page = page.replace("'/login'", "'/ia/login'")
-                payload = page.encode("utf-8")
+                payload = self.inject_assistant_overlay(page.encode("utf-8"))
             self.send_response(upstream.status)
             for key, value in upstream.getheaders():
                 lowered = key.lower()
