@@ -3,8 +3,17 @@
 Le rack est le plan de raccordement des logiciels de Mother. Il décrit ce
 qu'un module fournit, les permissions nécessaires et le chemin d'une demande.
 Le manifeste [`config/rack.json`](../config/rack.json) est chargé par l'API
-`GET /api/rack` et affiché dans le cockpit. Il reste un registre de capacités et
-d'états : il ne route pas encore les appels des modèles.
+`GET /api/rack` et affiché dans le cockpit. À chaque ouverture, l'API ajoute
+l'heure d'observation et les sondes disponibles pour Ollama, Super IA, Quant
+Core, le montage Obsidian et le serveur Veille. Les autres modules sont marqués
+« non sondés ». Ces lectures n'exécutent aucune capacité et ne routent pas les
+appels des modèles.
+
+Les états du manifeste restent déclaratifs : `available` décrit une capacité
+annoncée, pas sa santé. Le champ `runtime` est un instantané de sondes à
+l'ouverture du panneau. La sonde Ollama confirme seulement la réponse HTTP de
+l'API et sa version; elle ne prouve pas qu'un modèle est chargé ou prêt à
+répondre. Les détails runtime n'incluent pas les chemins locaux du coffre.
 
 ## Identité et objectifs
 
