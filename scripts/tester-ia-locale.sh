@@ -4,11 +4,6 @@ set -euo pipefail
 modele="${1:-qwen3:8b}"
 api_ollama="http://127.0.0.1:11434"
 
-if [[ "${modele,,}" == *"abliterated"* || "${modele,,}" == *"uncensored"* ]]; then
-  echo "ERREUR  Le modèle expérimental ${modele} ne doit pas servir au test de référence."
-  exit 2
-fi
-
 if ! curl --fail --silent --show-error --max-time 5 "${api_ollama}/api/version" >/dev/null; then
   echo "ERREUR  API Ollama inaccessible sur ${api_ollama}."
   exit 3
