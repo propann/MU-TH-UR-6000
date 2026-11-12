@@ -12,9 +12,10 @@ la session, contexte de la fenêtre et mode éditeur. Le mode éditeur livré da
 cette étape produit un plan de modification. Il ne prétend pas avoir écrit un
 fichier et n'expose aucun shell.
 
-Dans la zone de saisie, `Entrée` envoie le message et `Maj + Entrée` insère une
-nouvelle ligne. Une composition en cours avec un clavier virtuel ou un IME n'est
-jamais envoyée prématurément.
+La zone de saisie n'a pas de bouton d'envoi. Elle revient automatiquement à la
+ligne et grandit avec le texte jusqu'à sa hauteur maximale. `Entrée` envoie le
+message et `Maj + Entrée` insère une nouvelle ligne. Une composition en cours
+avec un clavier virtuel ou un IME n'est jamais envoyée prématurément.
 
 ## Pourquoi l'écriture directe est bloquée
 
