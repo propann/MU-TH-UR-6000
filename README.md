@@ -82,6 +82,8 @@ Ne jamais démarrer tous les laboratoires pour un simple contrôle documentaire.
 ## Documentation
 
 - [Architecture](docs/ARCHITECTURE.md)
+- [Trame graphique MU-TH-UR](docs/DESIGN-SYSTEM.md)
+- [Audit de la Veille et étude Mistral](docs/AUDIT-VEILLE-MISTRAL.md)
 - [État du déploiement](docs/DEPLOIEMENT.md)
 - [IA et Obsidian](docs/IA-OBSIDIAN.md)
 - [Incident IA du 12 novembre](docs/INCIDENT-IA-2026-11-12.md)
