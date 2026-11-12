@@ -23,8 +23,8 @@ case cochée demande une preuve reproductible, pas seulement un service `active`
   redémarre pas nécessairement ses unités déjà actives.
 - [x] Obsidian est éditable par l'utilisateur; les brouillons IA sont créés
   exclusivement dans le montage `Inbox` avec création sans écrasement.
-- [ ] Le rack est un inventaire documentaire; aucun routeur ne charge encore
-  `config/rack.yaml`.
+- [x] Le manifeste `config/rack.json` est chargé par `GET /api/rack` et lisible
+  depuis le cockpit; il ne route pas encore les appels outils.
 
 ## P0 — avant toute mise en service fiable
 
