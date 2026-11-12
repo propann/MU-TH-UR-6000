@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "system": {
+    "id": "mu-th-ur-6000",
+    "name": "MU-TH-UR 6000",
+    "nickname": "Mother",
+    "repository": "https://github.com/propann/MU-TH-UR-6000.git"
+  },
+  "modules": [
+    {
+      "id": "inference.ollama",
+      "name": "Ollama local",
+      "status": "available",
+      "summary": "Inférence locale sur les modèles installés.",
+      "capabilities": ["ai.models.list", "ai.chat.local"],
+      "notes": ["Un seul grand modèle chargé à la fois.", "Qwen3-8B et Qwen3 Abliterated validés avec raisonnement activé le 12 novembre 2026."]
+    },
+    {
+      "id": "inference.mistral",
+      "name": "Mistral API",
+      "status": "limited",
+      "summary": "Fournisseur distant sélectionnable dans le chat Super IA.",
+      "capabilities": ["ai.chat.remote"],
+      "notes": ["La jauge locale de tokens n'impose pas de plafond serveur ou financier.", "L'opt-in de contexte Obsidian doit être corrigé et vérifié avant usage stable."]
+    },
+    {
+      "id": "workspace.superia",
+      "name": "Outils de fichiers Super IA",
+      "status": "limited",
+      "summary": "Les deux modèles locaux reçoivent le même catalogue d'outils.",
+      "capabilities": ["workspace.files.list", "workspace.files.read", "workspace.files.write"],
+      "notes": ["La portée actuelle est le répertoire de travail Super IA.", "L'écriture remplace un fichier et n'est pas validée sous les permissions systemd actuelles.", "Ne pas utiliser comme éditeur Mother avant durcissement."]
+    },
+    {
+      "id": "knowledge.obsidian",
+      "name": "Obsidian / SuperIA-Vault",
+      "status": "limited",
+      "summary": "Le coffre est éditable par l'utilisateur; les brouillons IA ciblent Inbox.",
+      "capabilities": ["obsidian.notes.edit-by-user", "obsidian.context.retrieve", "obsidian.drafts.create"],
+      "notes": ["La création Inbox refuse les noms déjà présents.", "Le partage de contexte avec Mistral dépend du build actif et de la case, actuellement cochée par défaut."]
+    },
+    {
+      "id": "watch.veille",
+      "name": "Veille",
+      "status": "available",
+      "summary": "Collecte RSS/Atom et consultation dans le cockpit.",
+      "capabilities": ["watch.feeds.refresh", "watch.articles.search"],
+      "notes": ["La traduction et le tri par IA ne sont pas encore raccordés."]
+    },
+    {
+      "id": "source.git",
+      "name": "Git / dépôts",
+      "status": "limited",
+      "summary": "Les dépôts sont inspectés par les scripts opérateur.",
+      "capabilities": ["git.repository.inspect"],
+      "notes": ["Aucun outil Git n'est encore raccordé au chat Mother."]
+    },
+    {
+      "id": "trading.freqtrade",
+      "name": "Quant Core / Freqtrade",
+      "status": "isolated",
+      "summary": "État visible dans le cockpit; moteur configuré en dry-run.",
+      "capabilities": ["trading.status.read"],
+      "notes": ["La soumission d'ordre n'est pas exposée aux modèles.", "Aucune clé d'exchange ne doit être fournie au chat."]
+    },
+    {
+      "id": "automation.n8n",
+      "name": "Az-N8N",
+      "status": "inactive",
+      "summary": "Référence archivée; aucun workflow n'est démarré.",
+      "capabilities": [],
+      "notes": []
+    },
+    {
+      "id": "protocol.mcp",
+      "name": "MCP",
+      "status": "planned",
+      "summary": "Étude en cours; aucun client ou serveur MCP opérationnel.",
+      "capabilities": [],
+      "notes": ["Un serveur seul ne suffit pas : le chat Mother devra aussi intégrer un client MCP."]
+    }
+  ]
+}
