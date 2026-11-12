@@ -7,8 +7,8 @@ Ce dossier reçoit localement des liens vers les clones conservés sous
 | Lien local | Dépôt officiel | Référence validée le 12/11/2026 |
 |---|---|---|
 | `services/veille-azoth` | `propann/MU-TH-UR-6000` | branche `main` |
-| `services/super-ia` | `propann/super-ia` | `e33bd4b` |
-| `services/freqtrade` | `propann/freqtrade` | `6140771` |
+| `services/super-ia` | `propann/super-ia` | `179085f` |
+| `services/freqtrade` | `propann/freqtrade` | `0adce65` |
 | `services/Az-N8N` | `propann/Az-N8N` | référence archivée |
 
 Chaque changement fonctionnel est commité et testé dans le dépôt du composant.
