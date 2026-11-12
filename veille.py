@@ -670,8 +670,9 @@ class Handler(BaseHTTPRequestHandler):
     server_version = "VeilleAzoth/3.0"
 
     def authorized(self):
-        """Authentification HTTP Basic, active seulement si un mot de passe est defini.
-        Le navigateur affiche sa fenetre de connexion ; n'importe quel identifiant convient."""
+        """Basic Auth pour les routes publiques; exception loopback sur le pont RACK en lecture."""
+        if self.is_internal_rack_caller():
+            return True
         if not PASSWORD:
             return True
         h = self.headers.get("Authorization", "")
@@ -682,6 +683,16 @@ class Handler(BaseHTTPRequestHandler):
                 return False
             return hmac.compare_digest(given.encode(), PASSWORD.encode())
         return False
+
+    def is_internal_rack_caller(self):
+        """Autorise le pont Super IA uniquement en loopback, sans en-têtes de proxy/web."""
+        if urllib.parse.urlparse(self.path).path != "/api/rack/internal/call":
+            return False
+        address = self.client_address[0]
+        return (address in {"127.0.0.1", "::1"}
+                and not self.headers.get("Origin")
+                and not self.headers.get("Forwarded")
+                and not self.headers.get("X-Forwarded-For"))
 
     def deny(self):
         self.send(401, {"error": "mot de passe requis"},
@@ -938,10 +949,12 @@ h1{color:#ffb53d;font-size:28px}code{color:#3dff7f}a{color:#3dff7f}
             return self.send(403, {"error": "origine refusee"})
         path = urllib.parse.urlparse(self.path).path
         try:
-            data = self.body(16_384 if path == "/api/rack/call" else 2_000_000)
+            data = self.body(16_384 if path in {"/api/rack/call", "/api/rack/internal/call"} else 2_000_000)
         except ValueError as e:
             return self.send(400, {"error": str(e)})
-        if path == "/api/rack/call":
+        if path in {"/api/rack/call", "/api/rack/internal/call"}:
+            if path == "/api/rack/internal/call" and not self.is_internal_rack_caller():
+                return self.send(403, {"error": "appel interne refusé"})
             if not isinstance(data, dict):
                 return self.send(400, {"error": "le corps doit être un objet JSON"})
             status, result = call_rack_capability(data.get("capability"), data.get("input", {}))
