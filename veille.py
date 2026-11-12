@@ -71,6 +71,7 @@ MAX_AGE_DAYS = 45
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) VeilleAzoth/3.0"
 COINS = "bitcoin,monero,dogecoin"   # identifiants CoinGecko, separes par des virgules
 SLOW_HOSTS = {"www.reddit.com": 3.0}  # site -> pause (s) entre deux flux du meme site
+SLOW_FORCE_TTL = 3600              # un rafraichissement force ne contourne pas le TTL lent
 PASSWORD = ""                         # rempli par --password ou VEILLE_PASSWORD
 QUANT_PROXY_URL = os.environ.get("QUANT_PROXY_URL", "http://127.0.0.1:3000").rstrip("/")
 SUPERIA_PROXY_URL = os.environ.get("SUPERIA_PROXY_URL", "http://127.0.0.1:3210").rstrip("/")
@@ -395,7 +396,7 @@ refresh_lock = threading.Lock()   # evite deux collectes simultanees
 
 def refresh(force=False):
     """Met a jour les flux perimes puis renvoie tous les articles, du plus recent au plus ancien.
-    force=True ignore le cache, sauf pour les sites lents (Reddit) rafraichis il y a moins de 5 min."""
+    force=True ignore le cache, sauf pour les sites lents avant leur TTL configure (au moins 1 h)."""
     with lock:
         active = [s for s in sources if s.get("on", True)]
     with refresh_lock:
@@ -405,7 +406,7 @@ def refresh(force=False):
             age = now - cache.get(s["id"], {}).get("fetched", 0)
             if force:
                 slow = urllib.parse.urlparse(s["url"]).netloc in SLOW_HOSTS
-                return age > (300 if slow else 0)
+                return age > (max(SLOW_FORCE_TTL, s.get("ttl", FEED_TTL)) if slow else 0)
             return age > s.get("ttl", FEED_TTL)
 
         todo = [s for s in active if stale(s)]
