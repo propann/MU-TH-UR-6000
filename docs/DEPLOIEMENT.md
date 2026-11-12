@@ -93,6 +93,11 @@ prévu est `/home/azoth/GoogleDrive/SuperIA-Vault`, monté en lecture-écriture 
 `serveur-local/connecter-cerveau.sh` afin qu'Obsidian puisse créer, modifier,
 renommer et supprimer les notes de l'utilisateur.
 
+Les identifiants des deux dossiers sont conservés hors Git dans
+`~/.config/azoth/drive-folders.env` (modèle :
+[`config/drive-folders.env.example`](../config/drive-folders.env.example)). Le
+fichier réel doit être lisible seulement par l'utilisateur (`chmod 600`).
+
 Drive contient deux dossiers homonymes. Le coffre actif retenu le 11 novembre
 2026 est celui qui contient `.obsidian`, `Accueil SuperIA.md`,
 `Reprise SuperIA et état du système.md` et les notes les plus récentes. L'autre
