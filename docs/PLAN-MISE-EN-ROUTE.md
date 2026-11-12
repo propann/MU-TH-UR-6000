@@ -86,11 +86,14 @@ case cochée demande une preuve reproductible, pas seulement un service `active`
 
 ## P1 — rack exploitable
 
-- [ ] Valider le schéma et les identifiants de capacités du manifeste avec les
-  API/routes réellement disponibles.
-- [ ] Implémenter un registre chargé par Mother avec métadonnées uniformes :
-  module, capacité, ressource autorisée, schéma d'entrée, permission, résultat
-  et erreur normalisés.
+- [x] Valider les identifiants déclarés et exposer `GET /api/rack/capabilities`
+  avec schémas d'entrée et état `callable`/`declared`.
+- [x] Implémenter `POST /api/rack/call`, un corps limité, un appel allowlisté
+  et un résultat/erreur/durée normalisés pour les lectures.
+- [x] Raccorder `ai.models.list`, `watch.articles.search` (cache uniquement) et
+  `trading.status.read`; le panneau RACK permet de les essayer manuellement.
+- [ ] Connecter le chat Super IA à ce routeur après validation de son contrat
+  d'outils et des règles d'authentification entre services.
 - [ ] Ajouter un adaptateur Obsidian limité à rechercher/lire du contexte et
   créer un brouillon Inbox; afficher sources et reçus d'outil.
 - [ ] Décider si MCP est nécessaire après extraction de ces fonctions dans un
