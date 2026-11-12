@@ -15,6 +15,29 @@ l'ouverture du panneau. La sonde Ollama confirme seulement la réponse HTTP de
 l'API et sa version; elle ne prouve pas qu'un modèle est chargé ou prêt à
 répondre. Les détails runtime n'incluent pas les chemins locaux du coffre.
 
+## Premier registre exécutable
+
+Le contrat est exposé par `GET /api/rack/capabilities` et
+`POST /api/rack/call`. La liste associe chaque capacité déclarée à son module, son
+état (`callable` ou `declared`), son profil de permission et son schéma d'entrée.
+Un appel renvoie `capability`, `status`, `data`, `error` et `duration_ms`.
+Les corps d'appel sont limités à 16 Kio; l'API reprend le contrôle d'accès du
+cockpit et vérifie l'origine des requêtes `POST`.
+
+Trois capacités de lecture ont un adaptateur :
+
+- `ai.models.list` lit uniquement `GET /api/tags` sur Ollama local et ne renvoie
+  que le nom, la famille, la taille et la quantification des modèles;
+- `watch.articles.search` recherche uniquement dans le cache local, sans
+  rafraîchir les flux ni suivre les URL, et renvoie au plus 20 résultats;
+- `trading.status.read` lit l'état de santé de Quant Core sans accéder aux
+  positions, aux clés ni aux actions de trading.
+
+Les autres capacités restent déclaratives et un appel renvoie `not_connected`.
+Le chat Super IA ne consomme pas encore ce registre; le panneau RACK offre un
+test manuel des trois adaptateurs. Aucun outil de fichiers, d'écriture Obsidian,
+de rafraîchissement réseau ou de trading n'est exécutable par ce routeur.
+
 ## Identité et objectifs
 
 Le système s'appelle **MU-TH-UR 6000**. Son nom d'usage est **Mother**, en
