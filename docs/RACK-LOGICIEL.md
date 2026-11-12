@@ -2,8 +2,9 @@
 
 Le rack est le plan de raccordement des logiciels de Mother. Il décrit ce
 qu'un module fournit, les permissions nécessaires et le chemin d'une demande.
-Le manifeste [`config/rack.yaml`](../config/rack.yaml) est pour l'instant un
-inventaire documentaire : aucun moteur ne le charge pour router les appels.
+Le manifeste [`config/rack.json`](../config/rack.json) est chargé par l'API
+`GET /api/rack` et affiché dans le cockpit. Il reste un registre de capacités et
+d'états : il ne route pas encore les appels des modèles.
 
 ## Identité et objectifs
 
