@@ -62,6 +62,7 @@ DATA = ROOT / "data"
 SOURCES_FILE = ROOT / "sources.json"
 STATE_FILE = DATA / "state.json"
 CACHE_FILE = DATA / "cache.json"
+RACK_FILE = ROOT / "config" / "rack.json"
 
 FEED_TTL = 15 * 60          # secondes avant de re-telecharger un flux
 CRYPTO_TTL = 5 * 60
@@ -96,6 +97,23 @@ def save_json(path, obj):
     tmp = path.with_suffix(".tmp")
     tmp.write_text(json.dumps(obj, ensure_ascii=False, indent=1), encoding="utf-8")
     tmp.replace(path)
+
+
+def load_rack():
+    """Charge le registre public du rack et vérifie sa structure minimale."""
+    rack = json.loads(RACK_FILE.read_text(encoding="utf-8"))
+    if not isinstance(rack, dict) or rack.get("schema_version") != 1:
+        raise ValueError("version de manifeste du rack invalide")
+    if not isinstance(rack.get("system"), dict) or not isinstance(rack.get("modules"), list):
+        raise ValueError("manifeste du rack incomplet")
+    for module in rack["modules"]:
+        if not isinstance(module, dict) or not all(isinstance(module.get(key), str) for key in ("id", "name", "status")):
+            raise ValueError("entrée de module invalide dans le rack")
+        if not isinstance(module.get("capabilities"), list) or not all(isinstance(value, str) for value in module["capabilities"]):
+            raise ValueError("capacités invalides dans le rack")
+        if not isinstance(module.get("notes", []), list):
+            raise ValueError("notes invalides dans le rack")
+    return rack
 
 
 def default_state():
@@ -626,6 +644,11 @@ h1{color:#ffb53d;font-size:28px}code{color:#3dff7f}a{color:#3dff7f}
         if u.path.startswith("/ia/"):
             return self.proxy_superia()
         q = urllib.parse.parse_qs(u.query)
+        if u.path == "/api/rack":
+            try:
+                return self.send(200, load_rack())
+            except (OSError, ValueError) as e:
+                return self.send(503, {"error": "registre du rack indisponible", "detail": str(e)})
         if u.path == "/api/feeds":
             return self.send(200, refresh(force=q.get("force") == ["1"]))
         if u.path == "/api/crypto":
