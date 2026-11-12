@@ -29,11 +29,15 @@ class FakeRequest:
     def __init__(self, path, body=None):
         self.path = path
         self.headers = {"Host": "localhost", "Origin": "http://localhost"}
+        self.client_address = ("127.0.0.1", 50000)
         self.payload = body or {}
         self.max_body = None
 
     def authorized(self):
         return True
+
+    def is_internal_rack_caller(self):
+        return veille.Handler.is_internal_rack_caller(self)
 
     def same_origin(self):
         return True
@@ -122,6 +126,33 @@ class RackTests(unittest.TestCase):
         status, result = veille.Handler.do_POST(request)
         self.assertEqual(status, 400)
         self.assertIn("objet JSON", result["error"])
+
+    def test_internal_bridge_is_loopback_only_and_rejects_proxy_headers(self):
+        request = FakeRequest("/api/rack/internal/call")
+        self.assertFalse(veille.Handler.is_internal_rack_caller(request))
+        request.headers.pop("Origin")
+        request.headers.pop("X-Forwarded-For", None)
+        request.headers.pop("Forwarded", None)
+        self.assertTrue(veille.Handler.is_internal_rack_caller(request))
+        request.headers["X-Forwarded-For"] = "192.168.2.7"
+        self.assertFalse(veille.Handler.is_internal_rack_caller(request))
+
+    def test_internal_bridge_executes_read_only_call_only_from_loopback(self):
+        local = FakeRequest("/api/rack/internal/call", {
+            "capability": "watch.articles.search", "input": {"query": "cached search"},
+        })
+        local.headers.pop("Origin")
+        status, result = veille.Handler.do_POST(local)
+        self.assertEqual(status, 200)
+        self.assertEqual(result["status"], "ok")
+
+        remote = FakeRequest("/api/rack/internal/call", {
+            "capability": "watch.articles.search", "input": {"query": "cached search"},
+        })
+        remote.headers.pop("Origin")
+        remote.client_address = ("192.168.2.7", 50000)
+        status, result = veille.Handler.do_POST(remote)
+        self.assertEqual(status, 403)
 
 
 if __name__ == "__main__":
