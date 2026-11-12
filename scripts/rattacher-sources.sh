@@ -10,7 +10,7 @@ for repo in freqtrade super-ia veille-azoth; do
   target_path="$project_root/services/$repo"
   if [ ! -d "$source_path/.git" ]; then
     printf 'Source absente : %s\n' "$source_path"
-    printf 'Attendre la fin de installer-poste.sh ou lancer recuperer-sources.sh.\n'
+    printf 'Restaurer ou cloner ce dépôt dans %s, puis relancer ce script.\n' "$source_root"
     exit 1
   fi
   if [ -L "$target_path" ]; then
