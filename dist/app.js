@@ -92,6 +92,29 @@ async function loadCockpit() {
   }
 }
 
+async function openRack() {
+  const dialog = $('#rackDialog');
+  const content = $('#rackContent');
+  $('#rackIntro').textContent = 'Chargement du registre des modules…';
+  content.innerHTML = '<p class="rack-message">Lecture du manifeste Mother…</p>';
+  if (!dialog.open) dialog.showModal();
+  try {
+    const rack = await api('/api/rack');
+    const modules = Array.isArray(rack.modules) ? rack.modules : [];
+    $('#rackIntro').textContent = `${rack.system?.name || 'MU-TH-UR 6000'} · registre informatif, le routage runtime reste à construire`;
+    const labels = { available: 'DISPONIBLE', limited: 'LIMITÉ', isolated: 'ISOLÉ', inactive: 'ARRÊTÉ', planned: 'À CONSTRUIRE' };
+    content.innerHTML = modules.map(module => {
+      const status = ['available', 'limited', 'isolated', 'inactive', 'planned'].includes(module.status) ? module.status : 'limited';
+      const capabilities = (Array.isArray(module.capabilities) ? module.capabilities : []).map(item => `<code>${esc(item)}</code>`).join('') || '<span class="rack-none">Aucune capacité active</span>';
+      const notes = (Array.isArray(module.notes) ? module.notes : []).map(item => `<li>${esc(item)}</li>`).join('');
+      return `<article class="rack-card ${status}"><div class="rack-card-head"><h3>${esc(module.name)}</h3><b>${labels[status]}</b></div><p>${esc(module.summary || '')}</p><div class="rack-capabilities">${capabilities}</div>${notes ? `<ul>${notes}</ul>` : ''}<small>${esc(module.id)}</small></article>`;
+    }).join('') || '<p class="rack-message">Aucun module déclaré.</p>';
+  } catch (error) {
+    $('#rackIntro').textContent = 'Le registre n’a pas pu être chargé.';
+    content.innerHTML = `<p class="rack-message error">${esc(error instanceof Error ? error.message : String(error))}</p>`;
+  }
+}
+
 /** « il y a 3 h » compact, pour la colonne de gauche. */
 function ago(ts) {
   if (!ts) return ['—', ''];
@@ -433,12 +456,18 @@ $('#btnSynth').onclick = exportSynthese;
 $('#modules').addEventListener('click', e => {
   const module = e.target.closest('[data-module]');
   if (!module) return;
+  if (module.dataset.module === 'rack') {
+    e.preventDefault();
+    void openRack();
+    return;
+  }
   if (module.dataset.module === 'trading' && module.getAttribute('href') !== '#') return;
   if (module.dataset.module === 'ai' && module.getAttribute('href') !== '#') return;
   e.preventDefault();
   const names = { trading: 'Quant Core', ai: 'IA locale', vault: 'Cœur Obsidian' };
   alert(`${names[module.dataset.module]} : l’état est déjà supervisé. L’interface native sera activée à l’étape suivante.`);
 });
+$('#rackClose').onclick = () => $('#rackDialog').close();
 
 /** Arrête le serveur local (la veille lancée par l'icône tourne sans fenêtre). */
 $('#btnOff').onclick = async () => {
