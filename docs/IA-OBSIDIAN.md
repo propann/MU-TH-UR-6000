@@ -7,7 +7,8 @@
 
 ## Objectif
 
-La façade Super IA est un chat personnel léger. Elle donne accès aux modèles
+La façade Super IA de MU-TH-UR 6000, surnommé Mother, est un chat personnel léger.
+Elle donne accès aux modèles
 Ollama locaux et, sur choix explicite, à l'API Mistral. Elle ne lance aucun
 agent autonome et ne possède aucun accès aux commandes système ou au trading.
 
@@ -24,19 +25,25 @@ Ollama est le fournisseur par défaut. La liste de modèles est lue depuis
 `http://127.0.0.1:11434/api/tags`. Le modèle, la température et la longueur
 maximale sont choisis dans l'interface.
 
-Mistral n'est appelé qu'après sélection manuelle et confirmation pour chaque
-message. Sa clé est saisie dans la page IA, chiffrée en AES-256-GCM et stockée
+Mistral est appelé après sélection manuelle du fournisseur et envoi du message;
+il n'y a pas de confirmation distincte avant chaque requête. Sa clé est saisie
+dans la page IA, chiffrée en AES-256-GCM et stockée
 hors Git dans `~/.superia/credentials/vault.enc`. La clé n'est jamais renvoyée
 au navigateur après son enregistrement.
 
 Le contexte Obsidian est disponible avec Ollama et Mistral via la case « Utiliser
-Obsidian ». Avec Mistral, les extraits sélectionnés sont transmis à l'API distante.
+Obsidian ». Le réglage doit être une activation explicite pour le message, mais
+le code inspecté coche actuellement la case au premier chargement; corriger
+cette valeur par défaut avant mise en route. Avec Mistral, les extraits
+sélectionnés sont transmis à l'API distante.
 Voir [la liaison Mistral et Obsidian](MISTRAL-OBSIDIAN.md) pour le périmètre exact.
 
 ## Coffre documentaire
 
 Drive `SuperIA-Vault` est la source officielle. Le remote rclone attendu est
-`gdrive:`. Le script `~/serveur-local/connecter-cerveau.sh` crée deux montages :
+`gdrive:`. L'unité `azoth-vault.service` appelle
+`scripts/connecter-cerveau.sh` dans ce dépôt; ne pas confondre avec les copies
+historiques sous `~/serveur-local/`. Le script crée deux montages :
 
 - `/home/azoth/GoogleDrive/SuperIA-Vault` : coffre complet éditable dans Obsidian ;
 - `/home/azoth/GoogleDrive/SuperIA-Inbox` : montage indépendant et écrivable,
@@ -51,8 +58,11 @@ et ne peut donc pas écraser une note existante.
 
 ## Démarrage
 
-Le target `azoth.target` démarre Ollama, le coffre, Super IA, le cockpit et
-Quant Core. Le service `azoth-vault.service` monte le coffre avant Super IA.
+Le target `azoth.target` demande Ollama, le coffre, Super IA, le cockpit et
+Quant Core. `superia-local.target` est un target secondaire pour le couple IA;
+le redémarrage du target ne redémarre pas forcément les services déjà actifs.
+Pour redémarrer le couple, redémarrer explicitement ses deux unités :
+`systemctl --user restart ollama.service superia-web.service`.
 
 ```bash
 systemctl --user daemon-reload
