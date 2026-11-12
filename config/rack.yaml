@@ -1,0 +1,71 @@
+schema_version: 1
+system:
+  id: mu-th-ur-6000
+  name: MU-TH-UR 6000
+  nickname: Mother
+  repository: https://github.com/propann/MU-TH-UR-6000.git
+  status: inventory
+policy:
+  local_models_share_tool_surface: true
+  remote_obsidian_context: intended-explicit-opt-in
+  ai_note_write_scope: Inbox
+  overwrite_existing_notes: false
+  secrets_exposed_to_models: false
+  trading_execution_exposed_to_models: false
+modules:
+  - id: inference.ollama
+    status: operational
+    endpoint: http://127.0.0.1:11434
+    capabilities: [ai.models.list, ai.chat.local]
+    resources: [qwen3:8b, hf.co/richardyoung/Qwen3-8B-Abliterated-GGUF:Q4_K_M]
+  - id: inference.mistral
+    status: optional
+    endpoint: https://api.mistral.ai/v1
+    capabilities: [ai.chat.remote]
+    constraints: [provider-selection, usage-meter-is-local-and-not-enforced, no-secret-disclosure]
+  - id: workspace.superia
+    status: component
+    repository: https://github.com/propann/super-ia.git
+    capabilities: [workspace.files.list, workspace.files.read, workspace.files.write]
+    current_workspace: /home/azoth/serveur-local/worktrees/super-ia-lan-auth
+    constraints: [same-tools-for-local-models, dotfiles-and-generated-paths-denied, systemd-home-read-only]
+    unverified_capabilities: [workspace.files.write]
+    known_risks: [write-can-replace-existing-file, final-symlink-needs-review, not-mother-repository]
+  - id: knowledge.obsidian
+    status: operational
+    source_of_truth: google-drive
+    local_path: /home/azoth/GoogleDrive/SuperIA-Vault
+    capabilities: [obsidian.notes.edit-by-user, obsidian.context.retrieve, obsidian.drafts.create]
+    ai_write_scope: Inbox
+    constraints: [intended-explicit-context-opt-in, no-overwrite, preserve-drive-conflicts]
+    verification_needed: [context-checkbox-default-off, mistral-context-current-runtime]
+  - id: watch.veille
+    status: operational
+    repository: https://github.com/propann/MU-TH-UR-6000.git
+    capabilities: [watch.feeds.refresh, watch.articles.search]
+    planned_capabilities: [watch.articles.translate]
+  - id: source.git
+    status: operational
+    repository: https://github.com/propann/MU-TH-UR-6000.git
+    capabilities: [git.repository.inspect]
+    planned_capabilities: [git.worktree.manage]
+  - id: trading.freqtrade
+    status: isolated
+    repository: https://github.com/propann/freqtrade.git
+    capabilities: [trading.status.read]
+    unavailable_capabilities: [trading.orders.submit]
+    constraints: [dry-run, no-model-execution, no-exchange-secrets]
+  - id: automation.n8n
+    status: archived-reference
+    repository: https://github.com/propann/Az-N8N.git
+    capabilities: []
+  - id: protocol.mcp
+    status: study
+    capabilities: []
+    next_step: expose-bounded-obsidian-tools-through-a-mcp-client-and-server
+  - id: startup.systemd
+    status: operational-with-duplicate-entrypoints
+    capabilities: [services.start.on-boot]
+    entrypoint_full_stack: azoth.target
+    entrypoint_ai_pair: superia-local.target
+    constraints: [prefer-one-documented-operator-entrypoint]
