@@ -42,9 +42,10 @@ npm run diagnose:chat
 ```
 
 Le diagnostic vérifie chaque modèle détecté : texte conforme au marqueur,
-appel à l'outil local `list_files` et appel rack `mother_list_models`. Il échoue
-si la sortie n'est que du raisonnement/brouillon, si l'outil local ne s'exécute
-pas ou si le pont rack n'est pas joignable. Pour comparer le mode rapide :
+appel à l'outil local `list_files` et appels rack `mother_list_models`,
+`mother_search_articles` et `mother_trading_status`. Il échoue si la sortie
+n'est que du raisonnement/brouillon, si un outil ne s'exécute pas ou si le pont
+rack n'est pas joignable. Pour comparer le mode rapide :
 
 ```bash
 SUPERIA_TEST_THINK=0 npm run diagnose:chat
