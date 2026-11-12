@@ -712,9 +712,15 @@ h1{color:#ffb53d;font-size:28px}code{color:#3dff7f}a{color:#3dff7f}
             self.end_headers()
             return
         u = urllib.parse.urlparse(self.path)
-        if u.path.startswith("/quant"):
+        if u.path in ("/quant", "/ia"):
+            self.send_response(308)
+            self.send_header("Location", u.path + "/")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
+        if u.path.startswith("/quant/"):
             return self.proxy_quant()
-        if u.path.startswith("/ia"):
+        if u.path.startswith("/ia/"):
             return self.proxy_superia()
         path = "index.html" if u.path in ("", "/") else u.path.lstrip("/")
         f = (WEB / path).resolve()
