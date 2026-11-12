@@ -76,9 +76,15 @@ async function loadCockpit() {
     trading.target = status.trading?.online ? '_blank' : '';
     trading.rel = status.trading?.online ? 'noopener noreferrer' : '';
     const ai = $('#aiModule');
-    ai.href = status.ai?.workspace_online ? '/ia/' : '#';
+    // Le module reste accessible même si Super IA est arrêté : la passerelle
+    // affiche alors un diagnostic explicite au lieu de transformer la tuile en
+    // lien mort et de donner l'impression que le bot a disparu.
+    ai.href = '/ia/';
     ai.target = status.ai?.workspace_online ? '_blank' : '';
     ai.rel = status.ai?.workspace_online ? 'noopener noreferrer' : '';
+    ai.title = status.ai?.workspace_online
+      ? 'Ouvrir Super IA'
+      : 'Super IA est arrêté ou inaccessible ; ouvrir pour voir le diagnostic';
   } catch {
     document.querySelectorAll('[data-service]').forEach(el => {
       el.className = 'offline'; el.textContent = 'INDISPONIBLE';
