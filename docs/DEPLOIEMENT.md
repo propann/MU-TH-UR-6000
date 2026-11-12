@@ -134,6 +134,9 @@ Le cockpit `http://<adresse-lan>:8765` est la seule porte destinée au LAN.
 Quant Core est publié sous `/quant/` et Super IA sous `/ia/` par la passerelle
 authentifiée du cockpit. Leurs ports `3000` et `3210` restent liés à
 `127.0.0.1` : ils ne constituent donc plus des portes accessibles depuis le LAN.
+La tuile IA reste visible et mène toujours vers `/ia/`. Si le service local est
+arrêté, une page de diagnostic indique la commande de redémarrage au lieu de
+masquer le bot derrière un lien inactif.
 
 ## Fournisseur Mistral
 
