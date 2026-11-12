@@ -51,7 +51,7 @@ h1 em{color:var(--red);font-style:normal;text-shadow:0 0 10px var(--red)}
 .tools{display:flex;gap:8px}
 
 /* modules du cockpit */
-.modules{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding:14px clamp(16px,3vw,36px) 0}
+.modules{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;padding:14px clamp(16px,3vw,36px) 0}
 .module{display:grid;gap:2px;text-align:left;padding:11px 13px;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);text-decoration:none;color:var(--txt)}
 .module:hover,.module.on{border-color:var(--g);box-shadow:0 0 14px #3dff7f22}
 .module span{font:23px/1 var(--term);letter-spacing:1px;color:var(--g)}
@@ -59,6 +59,25 @@ h1 em{color:var(--red);font-style:normal;text-shadow:0 0 10px var(--red)}
 .module b.online{color:var(--g)}
 .module b.offline{color:var(--red)}
 .module small{color:var(--mut);font-size:11px}
+.rack-module span{color:var(--amber)}
+.rack-dialog{width:min(1080px,calc(100vw - 28px));max-width:none;max-height:min(86vh,900px);padding:20px;border:1px solid var(--line2);border-radius:5px;background:linear-gradient(160deg,var(--panel2),var(--bg));color:var(--txt);box-shadow:0 0 42px #000c}
+.rack-dialog::backdrop{background:#000b;backdrop-filter:blur(3px)}
+.rack-head{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:16px;border-bottom:1px solid var(--line);padding-bottom:12px}
+.rack-head h2{margin:0;color:var(--g);font:30px/1 var(--term);letter-spacing:1px}
+.rack-head p{margin:6px 0 0;color:var(--gd);font-size:12px}
+.rack-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(290px,100%),1fr));gap:10px;max-height:68vh;overflow:auto}
+.rack-card{border:1px solid var(--line);border-left:3px solid var(--amber);background:#07100acc;padding:12px;border-radius:3px}
+.rack-card.available{border-left-color:var(--g)}.rack-card.inactive{border-left-color:var(--mut)}.rack-card.planned{border-left-color:#6888ff}
+.rack-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.rack-card h3{font:23px/1 var(--term);color:var(--txt);margin:0}
+.rack-card-head b{color:var(--amber);font-size:9px;letter-spacing:.08em;white-space:nowrap}
+.rack-card.available .rack-card-head b{color:var(--g)}.rack-card.planned .rack-card-head b{color:#9bb0ff}.rack-card.inactive .rack-card-head b{color:var(--mut)}
+.rack-card p{color:var(--gd);font-size:12px;margin:8px 0}
+.rack-capabilities{display:flex;flex-wrap:wrap;gap:5px}
+.rack-capabilities code{padding:2px 5px;border:1px solid var(--line2);color:var(--g);font-size:10px;overflow-wrap:anywhere}
+.rack-none,.rack-card li,.rack-card>small,.rack-message{color:var(--mut);font-size:11px}
+.rack-card ul{padding-left:18px;margin:9px 0}.rack-card li+li{margin-top:3px}.rack-card>small{display:block;margin-top:9px;opacity:.75}
+.rack-message{grid-column:1/-1;padding:12px}.rack-message.error{color:var(--red)}
 
 /* ticker */
 .ticker{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding:16px clamp(16px,3vw,36px)}
