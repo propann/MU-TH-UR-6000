@@ -570,7 +570,25 @@ class Handler(BaseHTTPRequestHandler):
             if self.command != "HEAD":
                 self.wfile.write(payload)
         except OSError:
-            self.send(502, {"error": "Super IA indisponible"})
+            if self.command == "GET" and upstream_path == "/":
+                page = """<!doctype html><html lang=\"fr\"><head><meta charset=\"utf-8\">
+<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">
+<title>Super IA indisponible</title><style>
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:#030604;color:#c9f5d6;font:14px/1.6 ui-monospace,monospace}
+main{max-width:660px;margin:24px;padding:28px;border:1px solid #143521;background:#07100a}
+h1{color:#ffb53d;font-size:28px}code{color:#3dff7f}a{color:#3dff7f}
+</style></head><body><main><h1>SUPER IA // HORS LIGNE</h1>
+<p>Le module est bien installé, mais son service local ne répond pas sur le port 3210.</p>
+<p>Sur la machine Azoth : <code>systemctl --user restart superia-web.service</code></p>
+<p>Puis contrôler : <code>curl -fsS http://127.0.0.1:3210/healthz</code></p>
+<p><a href=\"/\">← Retour au cockpit</a></p></main></body></html>""".encode("utf-8")
+                self.send_response(502)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(page)))
+                self.end_headers()
+                self.wfile.write(page)
+            else:
+                self.send(502, {"error": "Super IA indisponible"})
         finally:
             connection.close()
 
