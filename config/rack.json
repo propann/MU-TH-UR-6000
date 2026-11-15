@@ -13,7 +13,7 @@
       "status": "available",
       "summary": "Inférence locale sur les modèles installés.",
       "capabilities": ["ai.models.list", "ai.chat.local"],
-      "notes": ["Un seul grand modèle chargé à la fois.", "Qwen3-8B et Qwen3 Abliterated validés avec raisonnement activé le 12 novembre 2026."]
+      "notes": ["Un seul grand modèle chargé à la fois.", "Qwen3.5-9B primaire et huihui_ai/qwen3.5-abliterated:9b (lab) installés et testés le 15 novembre 2026 ; qwen3.5:0.8b pour les tâches rapides de veille.", "Flash attention actif, cache KV en q8_0, keep-alive 30 min, offload GPU complet (RTX 3060 Ti 8 Go)."]
     },
     {
       "id": "inference.mistral",

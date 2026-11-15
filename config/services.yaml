@@ -51,11 +51,16 @@ services:
     useful_watch_workflows_found: false
   local_ai:
     engine: ollama
-    primary_model: qwen3:8b
-    future_candidate: hf.co/bartowski/Qwen_Qwen3.5-9B-GGUF:Q4_K_M
-    experimental_uncensored: hf.co/richardyoung/Qwen3-8B-Abliterated-GGUF:Q4_K_M
+    primary_model: qwen3.5:9b
+    fast_model: qwen3.5:0.8b
+    experimental_uncensored: huihui_ai/qwen3.5-abliterated:9b
     context_tokens_initial: 8192
     max_loaded_models: 1
+    optimization:
+      flash_attention: true
+      kv_cache_type: q8_0
+      keep_alive: 30m
+      num_parallel: 1
     profiles:
       primary:
         tools_allowed: true
