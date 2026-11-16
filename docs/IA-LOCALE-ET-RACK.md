@@ -61,3 +61,11 @@ Les appels rack restent read-only : inventaire Ollama, recherche dans les
 articles déjà en cache, état de santé Quant Core. Aucun appel ne lit de compte
 de trading, ne passe d'ordre, ne rafraîchit de flux, n'écrit dans Obsidian ou
 n'exécute de commande système.
+
+Depuis le 16 novembre 2026, le chat local dispose en plus d'un catalogue d'outils
+documenté dans Super IA (`docs/WEB.md`, section « Outils du chat local ») :
+recherche dans le workspace et le coffre (`search_files`, `vault_search`),
+`workspace_stats`, `get_datetime`, `calc` (bac à sable), `system_info` (lecture
+seule), `web_search`/`web_fetch` (Internet en lecture seule, anti-SSRF) et
+`inbox_save` (seule écriture : brouillon inédit dans `Inbox/`, jamais
+d'écrasement). Aucun outil shell n'est exposé aux modèles.
