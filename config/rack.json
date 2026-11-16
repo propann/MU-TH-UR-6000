@@ -29,7 +29,7 @@
       "status": "limited",
       "summary": "Les deux modèles locaux reçoivent le même catalogue d'outils.",
       "capabilities": ["workspace.files.list", "workspace.files.read", "workspace.files.write"],
-      "notes": ["La portée actuelle est le répertoire de travail Super IA.", "L'écriture remplace un fichier et n'est pas validée sous les permissions systemd actuelles.", "Ne pas utiliser comme éditeur Mother avant durcissement."]
+      "notes": ["La portée actuelle est le répertoire de travail Super IA.", "L'écriture remplace un fichier et n'est pas validée sous les permissions systemd actuelles.", "Ne pas utiliser comme éditeur Mother avant durcissement.", "web_search et web_fetch ajoutés le 16 novembre 2026 : lecture seule d'Internet avec anti-SSRF (hôtes internes et IP privées refusés), extraits plafonnés et appels journalisés."]
     },
     {
       "id": "knowledge.obsidian",

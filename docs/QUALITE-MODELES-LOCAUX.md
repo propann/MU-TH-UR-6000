@@ -42,7 +42,10 @@ Pour les modèles de raisonnement, Ollama sépare `message.thinking` et
 être consommée avant cette réponse. Voir la [documentation officielle Ollama](https://github.com/ollama/ollama/blob/main/docs/capabilities/thinking.mdx).
 
 Le chat local expose `list_files`, `read_file` et `write_file` aux deux modèles
-locaux. Le dernier outil peut remplacer un fichier et le workspace effectif est
+locaux, les trois capacités read-only du rack MU-TH-UR (`mother_list_models`,
+`mother_search_articles`, `mother_trading_status`), ainsi que `web_search` et
+`web_fetch` (lecture seule d'Internet, anti-SSRF : hôtes internes, IP privées
+et ports autres que 80/443 refusés, extraits plafonnés, appels journalisés). Le dernier outil peut remplacer un fichier et le workspace effectif est
 le répertoire de travail du service Super IA. Cette fonction existe donc dans
 le code, mais son périmètre ne correspond pas encore à un espace de travail
 Mother sûr : voir [le rack](RACK-LOGICIEL.md) et le [plan de mise en route](PLAN-MISE-EN-ROUTE.md).
